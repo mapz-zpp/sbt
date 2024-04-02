@@ -49,6 +49,7 @@ import sbt.internal.nio.{ CheckBuildSources, Globs }
 import sbt.internal.server.{
   BspCompileProgress,
   BspCompileTask,
+  BspTestTask,
   BuildServerProtocol,
   BuildServerReporter,
   Definition,
@@ -1267,6 +1268,8 @@ object Defaults extends BuildCommon {
         val log = streams.value.log
         testFrameworks.value.flatMap(f => f.create(loader, log).map(x => (f, x))).toMap
       },
+      bspTestTask := BspTestTask
+        .start(bspTargetIdentifier.value, thisProjectRef.value, configuration.value),
       definedTests := detectTests.value,
       definedTestNames := definedTests
         .map(_.map(_.name).distinct)
@@ -1288,7 +1291,8 @@ object Defaults extends BuildCommon {
           (classLoaderLayeringStrategy),
           thisProject,
           fileConverter,
-        ).flatMapN { case (s, lt, tl, gp, ex, cp, fp, jo, clls, thisProj, c) =>
+          (bspTestTask),
+        ).flatMapN { case (s, lt, tl, gp, ex, cp, fp, jo, clls, thisProj, c, btt) =>
           allTestGroupsTask(
             s,
             lt,
@@ -1301,6 +1305,7 @@ object Defaults extends BuildCommon {
             clls,
             projectId = s"${thisProj.id} / ",
             c,
+            btt,
           )
         }
       }.value,
@@ -1474,6 +1479,7 @@ object Defaults extends BuildCommon {
   private[this] lazy val inputTests0: Initialize[InputTask[Unit]] = {
     val parser = loadForParser(definedTestNames)((s, i) => testOnlyParser(s, i getOrElse Nil))
     ParserGen(parser).flatMapTask { case ((selected, frameworkOptions)) =>
+      val bspTask = bspTestTask.value
       val s = streams.value
       val filter = testFilter.value
       val config = testExecution.value
@@ -1494,6 +1500,7 @@ object Defaults extends BuildCommon {
         classLoaderLayeringStrategy.value,
         projectId = s"${thisProject.value.id} / ",
         converter = fileConverter.value,
+        bspTask
       )
       val taskName = display.show(resolvedScoped.value)
       val trl = testResultLogger.value
@@ -1528,6 +1535,7 @@ object Defaults extends BuildCommon {
       config: Tests.Execution,
       cp: Classpath,
       converter: FileConverter,
+      bspTask: BspTestTask
   ): Task[Tests.Output] = {
     allTestGroupsTask(
       s,
@@ -1541,6 +1549,7 @@ object Defaults extends BuildCommon {
       strategy = ClassLoaderLayeringStrategy.ScalaLibrary,
       projectId = "",
       converter = converter,
+      bspTask
     )
   }
 
@@ -1553,6 +1562,7 @@ object Defaults extends BuildCommon {
       cp: Classpath,
       converter: FileConverter,
       forkedParallelExecution: Boolean,
+      bspTask: BspTestTask
   ): Task[Tests.Output] = {
     allTestGroupsTask(
       s,
@@ -1566,6 +1576,7 @@ object Defaults extends BuildCommon {
       strategy = ClassLoaderLayeringStrategy.ScalaLibrary,
       projectId = "",
       converter = converter,
+      bspTask
     )
   }
 
@@ -1581,6 +1592,7 @@ object Defaults extends BuildCommon {
       strategy: ClassLoaderLayeringStrategy,
       projectId: String,
       converter: FileConverter,
+      bspTask: BspTestTask
   ): Task[Tests.Output] = {
     val processedOptions: Map[Tests.Group, Tests.ProcessedOptions] =
       groups
@@ -1673,6 +1685,7 @@ object Defaults extends BuildCommon {
             }
         }
       }
+      bspTask.notifyFinish()
       val summaries =
         runners map { case (tf, r) =>
           Tests.Summary(frameworks(tf).name, r.done())

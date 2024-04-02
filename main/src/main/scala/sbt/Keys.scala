@@ -7,42 +7,42 @@
 
 package sbt
 
-import java.nio.file.{ Path => NioPath }
+import java.nio.file.Path as NioPath
 import java.io.File
 import java.net.URL
 import lmcoursier.definitions.{ CacheLogger, ModuleMatchers, Reconciliation }
 import lmcoursier.{ CoursierConfiguration, FallbackDependency }
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.logging.log4j.core.{ Appender => XAppender }
-import sbt.BuildSyntax._
+import org.apache.logging.log4j.core.Appender as XAppender
+import sbt.BuildSyntax.*
 import sbt.Def.ScopedKey
-import sbt.KeyRanks._
+import sbt.KeyRanks.*
 import sbt.internal.InMemoryCacheStore.CacheStoreFactoryFactory
-import sbt.internal._
-import sbt.internal.bsp._
+import sbt.internal.*
+import sbt.internal.bsp.*
 import sbt.internal.inc.ScalaInstance
 import sbt.internal.io.WatchState
 import sbt.internal.librarymanagement.{ CompatibilityWarningOptions, IvySbt }
 import sbt.internal.remotecache.RemoteCacheArtifact
 import sbt.internal.server.BuildServerProtocol.BspFullWorkspace
-import sbt.internal.server.{ BspCompileTask, BuildServerReporter, ServerHandler }
+import sbt.internal.server.{ BspCompileTask, BspTestTask, BuildServerReporter, ServerHandler }
 import sbt.internal.util.{ AttributeKey, ProgressState, SourcePosition }
 import sbt.internal.util.StringAttributeKey
-import sbt.io._
+import sbt.io.*
 import sbt.librarymanagement.Configurations.CompilerPlugin
-import sbt.librarymanagement.LibraryManagementCodec._
-import sbt.librarymanagement._
+import sbt.librarymanagement.LibraryManagementCodec.*
+import sbt.librarymanagement.*
 import sbt.librarymanagement.ivy.{ Credentials, IvyConfiguration, IvyPaths, UpdateOptions }
 import sbt.nio.file.Glob
 import sbt.testing.Framework
-import sbt.util.{ cacheLevel, ActionCacheStore, Level, Logger, LoggerContext }
+import sbt.util.{ ActionCacheStore, Level, Logger, LoggerContext, cacheLevel }
 import xsbti.{ FileConverter, HashedVirtualFileRef, VirtualFile, VirtualFileRef }
-import xsbti.compile._
+import xsbti.compile.*
 import xsbti.compile.analysis.ReadStamps
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.xml.{ NodeSeq, Node => XNode }
+import scala.xml.{ NodeSeq, Node as XNode }
 
 
 // format: off
@@ -441,6 +441,7 @@ object Keys {
   val bspBuildTargetCompileItem = taskKey[Int]("").withRank(DTask)
   @cacheLevel(include = Array.empty) private[sbt] val bspCompileTask = taskKey[BspCompileTask]("").withRank(DTask)
   val bspBuildTargetTest = inputKey[Unit]("Corresponds to buildTarget/test request").withRank(DTask)
+  @cacheLevel(include = Array.empty) private[sbt] val bspTestTask = taskKey[BspTestTask]("").withRank(DTask)
   val bspBuildTargetRun = inputKey[Unit]("Corresponds to buildTarget/run request").withRank(DTask)
   val bspBuildTargetCleanCache = inputKey[Unit]("Corresponds to buildTarget/cleanCache request").withRank(DTask)
   val bspBuildTargetScalacOptions = inputKey[Unit]("").withRank(DTask)

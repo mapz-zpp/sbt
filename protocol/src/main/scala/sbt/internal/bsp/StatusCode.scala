@@ -12,3 +12,7 @@ object StatusCode {
   final val Error: Int = 2
   final val Cancelled: Int = 3
 }
+
+object TestStatusCode {
+  final val Passed: Int = 1
+}

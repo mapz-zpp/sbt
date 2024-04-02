@@ -116,6 +116,11 @@ type Range {
   end: sbt.internal.bsp.Position!
 }
 
+type Location {
+    uri: java.net.URI!
+    range: sbt.internal.bsp.Range!
+}
+
 ## Represents a diagnostic, such as a compiler error or warning.
 ## Diagnostic objects are only valid in the scope of a resource.
 type Diagnostic {
@@ -510,6 +515,22 @@ type TestResult {
   # dataKind: String
 
   # data: sjsonnew.shaded.scalajson.ast.unsafe.JValue
+}
+
+# Test notifications
+
+type TestFinish {
+    displayName: String!
+    message: String
+    status: Int!
+    location: sbt.internal.bsp.Location
+    dataKind: String
+    data: sjsonnew.shaded.scalajson.ast.unsafe.JValue
+}
+
+type TestStart {
+    displayName: String!
+    location: sbt.internal.bsp.Location
 }
 
 ## Run Request
