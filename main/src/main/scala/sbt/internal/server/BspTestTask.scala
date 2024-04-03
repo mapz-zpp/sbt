@@ -1,16 +1,26 @@
 package sbt.internal.server
 
 import sbt.librarymanagement.Configuration
-import sbt.{ProjectRef, StandardMain}
-import sbt.internal.bsp.{BuildServerTasks, BuildTargetIdentifier, BuildTargetName, TaskFinishParams, TaskId, TaskStartParams, TestFinish, TestStart, TestStatusCode}
+import sbt.{ ProjectRef, StandardMain }
+import sbt.internal.bsp.{
+  BuildServerTasks,
+  BuildTargetIdentifier,
+  BuildTargetName,
+  TaskFinishParams,
+  TaskId,
+  TaskStartParams,
+  TestFinish,
+  TestStart,
+  TestStatusCode
+}
 import sjsonnew.support.scalajson.unsafe.Converter
 
 object BspTestTask {
   def start(
-           targetId: BuildTargetIdentifier,
-           project: ProjectRef,
-           config: Configuration
-           ): BspTestTask = {
+      targetId: BuildTargetIdentifier,
+      project: ProjectRef,
+      config: Configuration
+  ): BspTestTask = {
     val taskId = TaskId(BuildServerTasks.uniqueId, Vector())
     val targetName = BuildTargetName.fromScope(project.project, config.name)
     val task = BspTestTask(targetId, targetName, taskId, System.currentTimeMillis())
@@ -19,12 +29,12 @@ object BspTestTask {
   }
 }
 
-class BspTestTask private(
-                           targetId: BuildTargetIdentifier,
-                           targetName: String,
-                           id: sbt.internal.bsp.TaskId,
-                           startTimeMillis: Long
-                         ) {
+case class BspTestTask private (
+    targetId: BuildTargetIdentifier,
+    targetName: String,
+    id: sbt.internal.bsp.TaskId,
+    startTimeMillis: Long
+) {
   import sbt.internal.bsp.codec.JsonProtocol._
 
   private[sbt] def notifyStart(): Unit = {
