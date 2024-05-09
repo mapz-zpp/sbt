@@ -81,7 +81,7 @@ abstract class CommandChannel {
   private[sbt] final def logLevel: Level.Value = level.get
   private[this] def setLevel(value: Level.Value, cmd: String): Boolean = {
     level.set(value)
-    append(Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name))))
+    append(Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name)), commandQueue.peek.originId))
   }
   private[sbt] def onCommand: String => Boolean = {
     case "error" => setLevel(Level.Error, "error")
@@ -89,7 +89,10 @@ abstract class CommandChannel {
     case "info"  => setLevel(Level.Info, "info")
     case "warn"  => setLevel(Level.Warn, "warn")
     case cmd =>
-      if (cmd.nonEmpty) append(Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name))))
+      if (cmd.nonEmpty)
+        append(
+          Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name)), commandQueue.peek.originId)
+        )
       else false
   }
   private[sbt] def onFastTrackTask: String => Boolean = { s: String =>

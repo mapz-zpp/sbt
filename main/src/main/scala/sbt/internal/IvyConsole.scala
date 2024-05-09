@@ -60,7 +60,8 @@ object IvyConsole {
       )
 
       val newStructure = Load.reapply(session.original ++ append, structure)
-      val newState = state.copy(remainingCommands = Exec(Keys.consoleQuick.key.label, None) :: Nil)
+      val newState =
+        state.copy(remainingCommands = Exec(Keys.consoleQuick.key.label, None, None) :: Nil)
       Project.setProject(session, newStructure, newState)
     }
 

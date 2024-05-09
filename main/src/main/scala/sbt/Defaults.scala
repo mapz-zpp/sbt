@@ -2368,7 +2368,13 @@ object Defaults extends BuildCommon {
     val ping = earlyOutputPing.value
     val reporter = (compile / bspReporter).value
     BspCompileTask
-      .compute(bspTargetIdentifier.value, thisProjectRef.value, configuration.value, ci) { task =>
+      .compute(
+        bspTargetIdentifier.value,
+        thisProjectRef.value,
+        configuration.value,
+        ci,
+        Some("Default.scala")
+      ) { task =>
         // TODO - Should readAnalysis + saveAnalysis be scoped by the compile task too?
         compileIncrementalTaskImpl(task, s, ci, ping, reporter)
       }

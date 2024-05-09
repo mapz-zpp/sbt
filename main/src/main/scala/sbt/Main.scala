@@ -268,7 +268,7 @@ object StandardMain {
         .filterNot(c => c == DashDashDetachStdio || c == DashDashServer)
     val (earlyCommands, normalCommands) = (preCommands ++ userCommands).partition(isEarlyCommand)
     val commands = (earlyCommands ++ normalCommands).toList map { x =>
-      Exec(x, None)
+      Exec(x, None, None)
     }
     val initAttrs = BuiltinCommands.initialAttributes
     val s = State(
@@ -1039,8 +1039,9 @@ object BuiltinCommands {
           val wait = s"${ContinuousCommands.waitWatch} $channel"
           val onFailure =
             s1.onFailure.map(of => if (of.commandLine == Shell) of.withCommandLine(wait) else of)
-          val waitExec = Exec(wait, None)
-          val remaining: List[Exec] = Exec(FailureWall, None) :: waitExec :: s1.remainingCommands
+          val waitExec = Exec(wait, None, None)
+          val remaining
+              : List[Exec] = Exec(FailureWall, None, None) :: waitExec :: s1.remainingCommands
           val newState = s1.copy(remainingCommands = exec +: remaining, onFailure = onFailure)
           if (exec.commandLine.trim.isEmpty) newState
           else newState.clearGlobalLog
@@ -1052,7 +1053,8 @@ object BuiltinCommands {
     (state, channel) =>
       if (channel == ConsoleChannel.defaultName) {
         if (!state.remainingCommands.exists(_.commandLine == Shell))
-          state.copy(remainingCommands = state.remainingCommands ::: (Exec(Shell, None) :: Nil))
+          state
+            .copy(remainingCommands = state.remainingCommands ::: (Exec(Shell, None, None) :: Nil))
         else state
       } else {
         StandardMain.exchange.channelForName(channel) match {
@@ -1078,7 +1080,7 @@ object BuiltinCommands {
      * happen primarily on windows.
      */
     if (ITerminal.startedByRemoteClient && !exchange.hasServer) {
-      Exec(Shutdown, None) +: s1
+      Exec(Shutdown, None, None) +: s1
     } else {
       if (ITerminal.console.prompt == Prompt.Batch) ITerminal.console.setPrompt(Prompt.Pending)
       exchange prompt ConsolePromptEvent(s0)
@@ -1089,8 +1091,8 @@ object BuiltinCommands {
       val exec: Exec = getExec(s1, minGCInterval)
       val newState = s1
         .copy(
-          onFailure = Some(Exec(Shell, None)),
-          remainingCommands = exec +: Exec(Shell, None) +: s1.remainingCommands
+          onFailure = Some(Exec(Shell, None, None)),
+          remainingCommands = exec +: Exec(Shell, None, None) +: s1.remainingCommands
         )
         .setInteractive(true)
       val res =

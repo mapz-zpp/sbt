@@ -189,7 +189,7 @@ private[sbt] object CheckBuildSources {
   private[sbt] def needReloadImpl: Def.Initialize[Task[StateTransform]] = Def.task {
     val st = state.value
     st.get(CheckBuildSourcesKey) match {
-      case Some(cbs) if (cbs.needsReload(st, Exec("", None))) =>
+      case Some(cbs) if (cbs.needsReload(st, Exec("", None, None))) =>
         StateTransform("reload" :: (_: State))
       case _ => StateTransform(identity)
     }

@@ -31,11 +31,12 @@ object BspCompileTask {
       targetId: BuildTargetIdentifier,
       project: ProjectRef,
       config: Configuration,
-      ci: Inputs
+      ci: Inputs,
+      originId: Option[String]
   )(
       compile: BspCompileTask => CompileResult
   ): CompileResult = {
-    val task = BspCompileTask(targetId, project, config, ci)
+    val task = BspCompileTask(targetId, project, config, ci, originId)
     try {
       task.notifyStart()
       val result = Retry(compile(task))
@@ -56,11 +57,12 @@ object BspCompileTask {
       targetId: BuildTargetIdentifier,
       project: ProjectRef,
       config: Configuration,
-      inputs: Inputs
+      inputs: Inputs,
+      originId: Option[String]
   ): BspCompileTask = {
     val taskId = TaskId(BuildServerTasks.uniqueId, Vector())
     val targetName = BuildTargetName.fromScope(project.project, config.name)
-    new BspCompileTask(targetId, targetName, taskId, inputs, System.currentTimeMillis())
+    new BspCompileTask(targetId, targetName, taskId, inputs, System.currentTimeMillis(), originId)
   }
 
   private def compileReport(
@@ -81,14 +83,16 @@ case class BspCompileTask private (
     targetName: String,
     id: TaskId,
     inputs: Inputs,
-    startTimeMillis: Long
+    startTimeMillis: Long,
+    originId: Option[String]
 ) {
   import sbt.internal.bsp.codec.JsonProtocol._
 
   private[sbt] def notifyStart(): Unit = {
     val message = s"Compiling $targetName"
     val data = Converter.toJsonUnsafe(CompileTask(targetId))
-    val params = TaskStartParams(id, startTimeMillis, message, "compile-task", data)
+    val params =
+      TaskStartParams(id, startTimeMillis, message, "compile-task", data, originId.getOrElse("???"))
     exchange.notifyEvent("build/taskStart", params)
   }
 

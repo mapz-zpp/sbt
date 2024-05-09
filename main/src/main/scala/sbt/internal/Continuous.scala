@@ -575,7 +575,7 @@ private[sbt] object Continuous extends DeprecatedContinuous {
         getWatchEvent(forceTrigger = false).flatMap { e =>
           state.get(CheckBuildSources.CheckBuildSourcesKey) match {
             case Some(cbs) =>
-              if (cbs.needsReload(state, Exec("", Some(CommandSource(channel)))))
+              if (cbs.needsReload(state, Exec("", Some(CommandSource(channel)), None)))
                 Some(e -> Watch.Reload)
               else None
             case None =>

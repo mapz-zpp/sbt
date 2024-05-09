@@ -287,12 +287,12 @@ object BasicCommands {
 
   def append: Command =
     Command(AppendCommand, Help.more(AppendCommand, AppendLastDetailed))(otherCommandParser)(
-      (s, arg) => s.copy(remainingCommands = s.remainingCommands :+ Exec(arg, s.source))
+      (s, arg) => s.copy(remainingCommands = s.remainingCommands :+ Exec(arg, s.source, None))
     )
 
   def setOnFailure: Command =
     Command(OnFailure, Help.more(OnFailure, OnFailureDetailed))(otherCommandParser)(
-      (s, arg) => s.copy(onFailure = Some(Exec(arg, s.source)))
+      (s, arg) => s.copy(onFailure = Some(Exec(arg, s.source, None)))
     )
 
   def clearOnFailure: Command = Command.command(ClearOnFailure)(s => s.copy(onFailure = None))
@@ -373,7 +373,7 @@ object BasicCommands {
   def shutdown: Command = Command.command(Shutdown, shutdownBrief, shutdownBrief) { s =>
     s.source match {
       case Some(c) if c.channelName.startsWith("network") =>
-        s"${DisconnectNetworkChannel} ${c.channelName}" :: (Exec(Shutdown, None) +: s)
+        s"${DisconnectNetworkChannel} ${c.channelName}" :: (Exec(Shutdown, None, None) +: s)
       case _ => s exit true
     }
   }
@@ -411,8 +411,8 @@ object BasicCommands {
       case Some(line) =>
         val newState = s
           .copy(
-            onFailure = Some(Exec(OldShell, None)),
-            remainingCommands = Exec(line, s.source) +: Exec(OldShell, None) +: s.remainingCommands
+            onFailure = Some(Exec(OldShell, None, None)),
+            remainingCommands = Exec(line, s.source, None) +: Exec(OldShell, None, None) +: s.remainingCommands
           )
           .setInteractive(true)
         if (line.trim.isEmpty) newState else newState.clearGlobalLog
@@ -453,7 +453,7 @@ object BasicCommands {
         readMessage(port, previousSuccess) match {
           case Some(message) =>
             (message :: (ReadCommand + " " + port) :: s).copy(
-              onFailure = Some(Exec(ReadCommand + " " + (-port), s.source))
+              onFailure = Some(Exec(ReadCommand + " " + (-port), s.source, None))
             )
           case None =>
             System.err.println("Connection closed.")

@@ -72,7 +72,11 @@ trait ServerCallback {
   def jsonRpcRespondError(execId: Option[String], code: Long, message: String): Unit
   def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit
   def appendExec(exec: Exec): Boolean
-  def appendExec(commandLine: String, requestId: Option[String]): Boolean
+  def appendExec(
+      commandLine: String,
+      requestId: Option[String],
+      originId: Option[String] = None
+  ): Boolean
   def log: Logger
   def name: String
 

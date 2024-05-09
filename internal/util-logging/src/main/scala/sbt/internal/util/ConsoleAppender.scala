@@ -87,7 +87,10 @@ class ConsoleLogger private[ConsoleLogger] (
   private[sbt] val appender: Appender =
     ConsoleAppender(generateName(), out, ansiCodesSupported, useFormat, suppressedMessage)
 
-  override def control(event: ControlEvent.Value, message: => String): Unit =
+  override def control(
+      event: ControlEvent.Value,
+      message: => String
+  ): Unit =
     appender.control(event, message)
 
   override def log(level: Level.Value, message: => String): Unit =

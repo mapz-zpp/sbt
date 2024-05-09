@@ -315,22 +315,24 @@ object State {
                   !id.startsWith(networkExecPrefix) =>
               val newID = networkExecPrefix + Exec.newExecId
               val cmd = x.withExecId(newID)
-              val map = Exec(s"$MapExec $id $newID", None)
-              val complete = Exec(s"$CompleteExec $id", None)
-              val report = Exec(s"$ReportResult $id", Some(id), x.source)
-              val stash = Exec(StashOnFailure, None)
-              val failureWall = Exec(FailureWall, None)
-              val pop = Exec(PopOnFailure, None)
+              val map = Exec(s"$MapExec $id $newID", None, x.originId)
+              val complete = Exec(s"$CompleteExec $id", None, x.originId)
+              val report = Exec(s"$ReportResult $id", Some(id), x.source, x.originId)
+              val stash = Exec(StashOnFailure, None, x.originId)
+              val failureWall = Exec(FailureWall, None, x.originId)
+              val pop = Exec(PopOnFailure, None, x.originId)
               val remaining = map :: cmd :: complete :: failureWall :: pop :: report :: xs
               runCmd(stash, remaining)
             case _ => runCmd(x, xs)
           }
       }
     }
-    def :::(newCommands: List[String]): State = ++:(newCommands map { Exec(_, s.source) })
+    def :::(newCommands: List[String]): State =
+      ++:(newCommands map { Exec(_, s.source, s.currentCommand.flatMap(_.originId)) })
     def ++:(newCommands: List[Exec]): State =
       s.copy(remainingCommands = newCommands ::: s.remainingCommands)
-    def ::(command: String): State = +:(Exec(command, s.source))
+    def ::(command: String): State =
+      +:(Exec(command, s.source, s.currentCommand.flatMap(_.originId)))
     def +:(command: Exec): State = (command :: Nil) ++: this
     def ++(newCommands: Seq[Command]): State =
       s.copy(definedCommands = (s.definedCommands ++ newCommands).distinct)

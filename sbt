@@ -480,6 +480,7 @@ run() {
   syncPreloaded
 
   # no jar? download it.
+  sbt_jar="/home/mavia/.ivy2/local/org.scala-sbt/sbt-launch/1.10.0-SNAPSHOT/jars/sbt-launch.jar"
   [[ -f "$sbt_jar" ]] || acquire_sbt_jar "$sbt_version" || {
     exit 1
   }

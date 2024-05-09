@@ -215,7 +215,7 @@ object MainLoop {
     val exchange = StandardMain.exchange
     exchange.setState(state)
     exchange.notifyStatus(
-      ExecStatusEvent("Processing", channelName, exec.execId, Vector())
+      ExecStatusEvent("Processing", channelName, exec.execId, Vector(), exec.originId)
     )
     try {
       def process(): State = {
@@ -298,6 +298,7 @@ object MainLoop {
             exec.execId,
             newState.remainingCommands.toVector map (_.commandLine),
             exitCode(newState, state),
+            exec.originId
           )
           exchange.respondStatus(doneEvent)
         }
@@ -310,7 +311,7 @@ object MainLoop {
       state.get(CheckBuildSourcesKey) match {
         case Some(cbs) =>
           if (!cbs.needsReload(state, exec)) process()
-          else Exec("reload", None) +: exec +: state.remove(CheckBuildSourcesKey)
+          else Exec("reload", None, None) +: exec +: state.remove(CheckBuildSourcesKey)
         case _ => process()
       }
     } catch {
