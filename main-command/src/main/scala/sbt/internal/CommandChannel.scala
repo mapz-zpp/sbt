@@ -9,14 +9,16 @@
 package sbt
 package internal
 
+import sbt.Exec
+
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
-
 import sbt.internal.ui.{ UITask, UserThread }
 import sbt.internal.util.Terminal
 import sbt.protocol.EventMessage
 import sbt.util.Level
 
+import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.collection.JavaConverters._
 
 /**
@@ -58,12 +60,26 @@ abstract class CommandChannel {
   final def append(exec: Exec): Boolean = {
     registered.synchronized {
       exec.commandLine.nonEmpty && {
+        Files.writeString(
+          Paths.get("/home/mavia/sbt-log"),
+          s"[append] exec=$exec; isEmpty=${registered.isEmpty}; queue=$commandQueue\n",
+          StandardOpenOption.APPEND
+        )
         if (registered.isEmpty) commandQueue.add(exec)
         else registered.asScala.forall(_.add(exec))
       }
     }
   }
-  def poll: Option[Exec] = Option(commandQueue.poll)
+  def poll: Option[Exec] = {
+    val polledValue = commandQueue.poll
+    val valString = polledValue.toString
+    Files.writeString(
+      Paths.get("/home/mavia/sbt-log"),
+      s"\n[poll] $valString",
+      StandardOpenOption.APPEND
+    )
+    Option(polledValue)
+  }
 
   def prompt(e: ConsolePromptEvent): Unit = userThread.onConsolePromptEvent(e)
   def unprompt(e: ConsoleUnpromptEvent): Unit = userThread.onConsoleUnpromptEvent(e)
@@ -81,7 +97,14 @@ abstract class CommandChannel {
   private[sbt] final def logLevel: Level.Value = level.get
   private[this] def setLevel(value: Level.Value, cmd: String): Boolean = {
     level.set(value)
-    append(Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name)), commandQueue.peek.originId))
+    append(
+      Exec(
+        cmd,
+        Some(Exec.newExecId),
+        Some(CommandSource(name)),
+        Option(commandQueue.peek).flatMap(_.originId)
+      )
+    )
   }
   private[sbt] def onCommand: String => Boolean = {
     case "error" => setLevel(Level.Error, "error")
@@ -89,14 +112,32 @@ abstract class CommandChannel {
     case "info"  => setLevel(Level.Info, "info")
     case "warn"  => setLevel(Level.Warn, "warn")
     case cmd =>
-      if (cmd.nonEmpty)
-        append(
-          Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name)), commandQueue.peek.originId)
+      if (cmd.nonEmpty) {
+        // not here
+        val queueString = commandQueue.toString
+        val newExec = Exec(
+          cmd,
+          Some(Exec.newExecId),
+          Some(CommandSource(name)),
+          Option(commandQueue.peek).flatMap(_.originId)
         )
-      else false
+        Files.writeString(
+          Paths.get("/home/mavia/sbt-log"),
+          s"[onCommand] cmd=$cmd; queue=$queueString; exec=$newExec\n",
+          StandardOpenOption.APPEND
+        )
+        append(
+          newExec
+        )
+      } else false
   }
   private[sbt] def onFastTrackTask: String => Boolean = { s: String =>
     fastTrack.synchronized(fastTrack.forEach { q =>
+      Files.writeString(
+        Paths.get("/home/mavia/sbt-log"),
+        s"[onFastTrack] q=$q; s=$s\n; this=$this",
+        StandardOpenOption.APPEND
+      )
       q.add(new FastTrackTask(this, s))
       ()
     })

@@ -20,7 +20,6 @@ import java.util.concurrent.{
   TimeUnit
 }
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
-
 import sbt.BasicCommandStrings.{ Shutdown, TerminateAction }
 import sbt.internal.langserver.{ CancelRequestParams, ErrorCodes, LogMessageParams, MessageType }
 import sbt.internal.protocol.{
@@ -29,7 +28,6 @@ import sbt.internal.protocol.{
   JsonRpcResponseError,
   JsonRpcResponseMessage
 }
-
 import sbt.internal.ui.{ UITask, UserThread }
 import sbt.internal.util.{ Prompt, ReadJsonFromInputStream, Terminal, Util }
 import sbt.internal.util.Terminal.TerminalImpl
@@ -42,14 +40,13 @@ import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
 import sbt.protocol._
-import sbt.protocol.Serialization.{ attach, cancelReadSystemIn, readSystemIn, promptChannel }
-
+import sbt.protocol.Serialization.{ attach, cancelReadSystemIn, promptChannel, readSystemIn }
 import sbt.protocol.codec.JsonProtocol._
-
 import sjsonnew._
 import sjsonnew.support.scalajson.unsafe.{ CompactPrinter, Converter }
-
 import sbt.internal.util.ProgressState
+
+import java.nio.file.{ Files, Paths, StandardOpenOption }
 
 final class NetworkChannel(
     val name: String,
@@ -120,19 +117,39 @@ final class NetworkChannel(
     def jsonRpcRespondError(execId: Option[String], code: Long, message: String): Unit =
       self.respondError(code, message, execId)
 
-    def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit =
+    def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit = {
+      Files.writeString(
+        Paths.get("/home/mavia/sbt-log"),
+        s"\n[jsonRpcNotify] method=$method, params=$params",
+        StandardOpenOption.APPEND
+      )
       self.jsonRpcNotify(method, params)
+    }
 
     def appendExec(
         commandLine: String,
         execId: Option[String],
         originId: Option[String] = None
     ): Boolean = {
-      log.warn(s"@@@@ [appendExec] execId=$execId, originId=$originId")
+      Files.writeString(
+        Paths.get("/home/mavia/sbt-log"),
+        s"[appendExec/3] execId=$execId, originId=$originId\n",
+        StandardOpenOption.APPEND
+      )
       self.append(Exec(commandLine, execId, Some(CommandSource(name)), originId))
     }
 
-    def appendExec(exec: Exec): Boolean = self.append(exec)
+    def appendExec(exec: Exec): Boolean = {
+      val execId = exec.execId
+      val originId = exec.originId
+
+      Files.writeString(
+        Paths.get("/home/mavia/sbt-log"),
+        s"[appendExec/1] execId=$execId, originId=$originId\n",
+        StandardOpenOption.APPEND
+      )
+      self.append(exec)
+    }
 
     def log: Logger = self.log
     def name: String = self.name

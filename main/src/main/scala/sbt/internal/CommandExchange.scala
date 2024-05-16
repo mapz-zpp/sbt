@@ -13,7 +13,6 @@ import java.io.IOException
 import java.net.Socket
 import java.util.concurrent.atomic._
 import java.util.concurrent.{ LinkedBlockingQueue, TimeUnit }
-
 import sbt.BasicCommandStrings.{
   Cancel,
   CompleteExec,
@@ -34,6 +33,7 @@ import sbt.protocol.{ ExecStatusEvent, LogEvent }
 import sbt.util.Logger
 import sjsonnew.JsonFormat
 
+import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
@@ -110,6 +110,11 @@ private[sbt] final class CommandExchange {
         })
         catch { case _: InterruptedException => None }
       }
+      Files.writeString(
+        Paths.get("/home/mavia/sbt-log"),
+        s"[CommandExchange::impl] poll=$poll\n",
+        StandardOpenOption.APPEND
+      )
       poll match {
         case Some(exec) if exec.source.fold(true)(s => channels.exists(_.name == s.channelName)) =>
           exec.commandLine match {
@@ -482,6 +487,12 @@ private[sbt] final class CommandExchange {
                   case c: NetworkChannel if !c.isInteractive => exit(mt)
                   case _                                     =>
                 }
+                // HERE
+                Files.writeString(
+                  Paths.get("/home/mavia/sbt-log"),
+                  s"[FastTrackThread::run::impl] t=${t}\n",
+                  StandardOpenOption.APPEND
+                )
                 commandQueue.add(Exec(t, None, None))
               case `TerminateAction` => exit(mt)
               case `Shutdown` =>
