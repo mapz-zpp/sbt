@@ -387,4 +387,74 @@ object AList {
         )
       }
     }
+
+  sealed trait T12K[A, B, C, D, E, F, G, H, I, J, K, Z] {
+    type l[L[x]] = (L[A], L[B], L[C], L[D], L[E], L[F], L[G], L[H], L[I], L[J], L[K], L[Z])
+  }
+  type T12List[A, B, C, D, E, F, G, H, I, J, K, Z] =
+    AList[T12K[A, B, C, D, E, F, G, H, I, J, K, Z]#l]
+  def tuple12[A, B, C, D, E, F, G, H, I, J, K, Z]: T12List[A, B, C, D, E, F, G, H, I, J, K, Z] =
+    new T12List[A, B, C, D, E, F, G, H, I, J, K, Z] {
+      type T12[M[_]] = (M[A], M[B], M[C], M[D], M[E], M[F], M[G], M[H], M[I], M[J], M[K], M[Z])
+      def transform[M[_], N[_]](t: T12[M], f: M ~> N) =
+        (
+          f(t._1),
+          f(t._2),
+          f(t._3),
+          f(t._4),
+          f(t._5),
+          f(t._6),
+          f(t._7),
+          f(t._8),
+          f(t._9),
+          f(t._10),
+          f(t._11),
+          f(t._12)
+        )
+      def foldr[M[_], T](t: T12[M], f: (M[_], T) => T, init: T): T =
+        f(
+          t._1,
+          f(
+            t._2,
+            f(
+              t._3,
+              f(
+                t._4,
+                f(t._5, f(t._6, f(t._7, f(t._8, f(t._9, f(t._10, f(t._11, f(t._12, init))))))))
+              )
+            )
+          )
+        )
+      def traverse[M[_], N[_], P[_]](t: T12[M], f: M ~> (N ∙ P)#l)(
+          implicit np: Applicative[N]
+      ): N[T12[P]] = {
+        val g = (Tuple12
+          .apply[P[A], P[B], P[C], P[D], P[E], P[F], P[G], P[H], P[I], P[J], P[K], P[Z]] _).curried
+        np.apply(
+          np.apply(
+            np.apply(
+              np.apply(
+                np.apply(
+                  np.apply(
+                    np.apply(
+                      np.apply(
+                        np.apply(np.apply(np.apply(np.map(g, f(t._1)), f(t._2)), f(t._3)), f(t._4)),
+                        f(t._5)
+                      ),
+                      f(t._6)
+                    ),
+                    f(t._7)
+                  ),
+                  f(t._8)
+                ),
+                f(t._9)
+              ),
+              f(t._10)
+            ),
+            f(t._11)
+          ),
+          f(t._12)
+        )
+      }
+    }
 }

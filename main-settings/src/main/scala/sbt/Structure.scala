@@ -580,6 +580,12 @@ object Scoped {
     def identityMap = map(mkTuple11)
     protected def convert[M[_], R](z: Fun[M, R]) = z.tupled
   }
+  final class RichTaskable12[A, B, C, D, E, F, G, H, I, J, K, Z](t12: ((ST[A], ST[B], ST[C], ST[D], ST[E], ST[F], ST[G], ST[H], ST[I], ST[J], ST[K], ST[Z]))) extends RichTaskables[AList.T12K[A, B, C, D, E, F, G, H, I, J, K, Z]#l](t12)(AList.tuple12[A, B, C, D, E, F, G, H, I, J, K, Z]) {
+    type Fun[M[_], Ret] = (M[A], M[B], M[C], M[D], M[E], M[F], M[G], M[H], M[I], M[J], M[K], M[Z]) => Ret
+    def identityMap = map(mkTuple12)
+    protected def convert[M[_], R](z: Fun[M, R]) = z.tupled
+  }
+
 
   def mkTuple2[A, B] = (a: A, b: B) => (a, b)
   def mkTuple3[A, B, C] = (a: A, b: B, c: C) => (a, b, c)
@@ -591,7 +597,7 @@ object Scoped {
   def mkTuple9[A, B, C, D, E, F, G, H, I] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I) => (a, b, c, d, e, f, g, h, i)
   def mkTuple10[A, B, C, D, E, F, G, H, I, J] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J) => (a, b, c, d, e, f, g, h, i, j)
   def mkTuple11[A, B, C, D, E, F, G, H, I, J, K] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K) => (a, b, c, d, e, f, g, h, i, j, k)
-  def mkTuple12[A, B, C, D, E, F, G, H, I, J, K, L] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L) => (a, b, c, d, e, f, g, h, i, j, k, l)
+  def mkTuple12[A, B, C, D, E, F, G, H, I, J, K, Z] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, z: Z) => (a, b, c, d, e, f, g, h, i, j, k, z)
   def mkTuple13[A, B, C, D, E, F, G, H, I, J, K, L, N] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N) => (a, b, c, d, e, f, g, h, i, j, k, l, n)
   def mkTuple14[A, B, C, D, E, F, G, H, I, J, K, L, N, O] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, o: O) => (a, b, c, d, e, f, g, h, i, j, k, l, n, o)
   def mkTuple15[A, B, C, D, E, F, G, H, I, J, K, L, N, O, P] = (a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, o: O, p: P) => (a, b, c, d, e, f, g, h, i, j, k, l, n, o, p)
@@ -636,6 +642,11 @@ object Scoped {
     def apply[T](z: (A, B, C, D, E, F, G, H, I, J, K) => T) = Def.app[AList.T11K[A, B, C, D, E, F, G, H, I, J, K]#l, T](t11)(z.tupled)(AList.tuple11[A, B, C, D, E, F, G, H, I, J, K])
     def identity = apply(mkTuple11)
   }
+  final class Apply12[A, B, C, D, E, F, G, H, I, J, K, Z](t12: (Initialize[A], Initialize[B], Initialize[C], Initialize[D], Initialize[E], Initialize[F], Initialize[G], Initialize[H], Initialize[I], Initialize[J], Initialize[K], Initialize[Z])) {
+    def apply[T](z: (A, B, C, D, E, F, G, H, I, J, K, Z) => T) = Def.app[AList.T12K[A, B, C, D, E, F, G, H, I, J, K, Z]#l, T](t12)(z.tupled)(AList.tuple12[A, B, C, D, E, F, G, H, I, J, K, Z])
+    def identity = apply(mkTuple12)
+  }
+
 
   // format: on
 
@@ -664,6 +675,7 @@ trait TupleSyntax {
   implicit def t9ToTable9[A, B, C, D, E, F, G, H, I](t9: (ST[A], ST[B], ST[C], ST[D], ST[E], ST[F], ST[G], ST[H], ST[I])): RichTaskable9[A, B, C, D, E, F, G, H, I] = new RichTaskable9(t9)
   implicit def t10ToTable10[A, B, C, D, E, F, G, H, I, J](t10: (ST[A], ST[B], ST[C], ST[D], ST[E], ST[F], ST[G], ST[H], ST[I], ST[J])): RichTaskable10[A, B, C, D, E, F, G, H, I, J] = new RichTaskable10(t10)
   implicit def t11ToTable11[A, B, C, D, E, F, G, H, I, J, K](t11: (ST[A], ST[B], ST[C], ST[D], ST[E], ST[F], ST[G], ST[H], ST[I], ST[J], ST[K])): RichTaskable11[A, B, C, D, E, F, G, H, I, J, K] = new RichTaskable11(t11)
+  implicit def t11ToTable12[A, B, C, D, E, F, G, H, I, J, K, Z](t11: (ST[A], ST[B], ST[C], ST[D], ST[E], ST[F], ST[G], ST[H], ST[I], ST[J], ST[K], ST[Z])): RichTaskable12[A, B, C, D, E, F, G, H, I, J, K, Z] = new RichTaskable12(t11)
 
   implicit def t2ToApp2[A, B](t2: (Initialize[A], Initialize[B])): Apply2[A, B] = new Apply2(t2)
   implicit def t3ToApp3[A, B, C](t3: (Initialize[A], Initialize[B], Initialize[C])): Apply3[A, B, C] = new Apply3(t3)
@@ -675,6 +687,7 @@ trait TupleSyntax {
   implicit def t9ToApp9[A, B, C, D, E, F, G, H, I](t9: (Initialize[A], Initialize[B], Initialize[C], Initialize[D], Initialize[E], Initialize[F], Initialize[G], Initialize[H], Initialize[I])): Apply9[A, B, C, D, E, F, G, H, I] = new Apply9(t9)
   implicit def t10ToApp10[A, B, C, D, E, F, G, H, I, J](t10: (Initialize[A], Initialize[B], Initialize[C], Initialize[D], Initialize[E], Initialize[F], Initialize[G], Initialize[H], Initialize[I], Initialize[J])): Apply10[A, B, C, D, E, F, G, H, I, J] = new Apply10(t10)
   implicit def t11ToApp11[A, B, C, D, E, F, G, H, I, J, K](t11: (Initialize[A], Initialize[B], Initialize[C], Initialize[D], Initialize[E], Initialize[F], Initialize[G], Initialize[H], Initialize[I], Initialize[J], Initialize[K])): Apply11[A, B, C, D, E, F, G, H, I, J, K] = new Apply11(t11)
+  implicit def t12ToApp12[A, B, C, D, E, F, G, H, I, J, K, Z](t12: (Initialize[A], Initialize[B], Initialize[C], Initialize[D], Initialize[E], Initialize[F], Initialize[G], Initialize[H], Initialize[I], Initialize[J], Initialize[K], Initialize[Z])): Apply12[A, B, C, D, E, F, G, H, I, J, K, Z] = new Apply12(t12)
 
   // format: on
 }
