@@ -1263,7 +1263,7 @@ object Defaults extends BuildCommon {
           (test / javaOptions).value,
           (classLoaderLayeringStrategy).value,
           projectId = s"${thisProject.value.id} / ",
-          bspTestTask
+          bspTestTask.value
         )
       }
     ).value,
@@ -1454,7 +1454,7 @@ object Defaults extends BuildCommon {
         javaOptions.value,
         classLoaderLayeringStrategy.value,
         projectId = s"${thisProject.value.id} / ",
-        bspTask
+        bspTestTask.value
       )
       val taskName = display.show(resolvedScoped.value)
       val trl = testResultLogger.value
@@ -1487,6 +1487,7 @@ object Defaults extends BuildCommon {
       groups: Seq[Tests.Group],
       config: Tests.Execution,
       cp: Classpath,
+      bspTask: BspTestTask
   ): Initialize[Task[Tests.Output]] = {
     allTestGroupsTask(
       s,
@@ -1499,6 +1500,7 @@ object Defaults extends BuildCommon {
       javaOptions = Nil,
       strategy = ClassLoaderLayeringStrategy.ScalaLibrary,
       projectId = "",
+      bspTask
     )
   }
 
