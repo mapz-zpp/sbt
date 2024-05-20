@@ -49,6 +49,7 @@ import sbt.internal.nio.{ CheckBuildSources, Globs }
 import sbt.internal.server.{
   BspCompileProgress,
   BspCompileTask,
+  BspTestTask,
   BuildServerProtocol,
   BuildServerReporter,
   Definition,
@@ -1244,6 +1245,8 @@ object Defaults extends BuildCommon {
       val log = streams.value.log
       testFrameworks.value.flatMap(f => f.create(loader, log).map(x => (f, x)).toIterable).toMap
     },
+    bspTestTask := BspTestTask
+      .start(bspTargetIdentifier.value, thisProjectRef.value, configuration.value),
     definedTests := detectTests.value,
     definedTestNames := (definedTests map (_.map(_.name).distinct) storeAs definedTestNames triggeredBy compile).value,
     testQuick / testFilter := testQuickFilter.value,
@@ -1260,6 +1263,7 @@ object Defaults extends BuildCommon {
           (test / javaOptions).value,
           (classLoaderLayeringStrategy).value,
           projectId = s"${thisProject.value.id} / ",
+          bspTestTask
         )
       }
     ).value,
@@ -1450,6 +1454,7 @@ object Defaults extends BuildCommon {
         javaOptions.value,
         classLoaderLayeringStrategy.value,
         projectId = s"${thisProject.value.id} / ",
+        bspTask
       )
       val taskName = display.show(resolvedScoped.value)
       val trl = testResultLogger.value
@@ -1504,7 +1509,8 @@ object Defaults extends BuildCommon {
       groups: Seq[Tests.Group],
       config: Tests.Execution,
       cp: Classpath,
-      forkedParallelExecution: Boolean
+      forkedParallelExecution: Boolean,
+      bspTask: BspTestTask
   ): Initialize[Task[Tests.Output]] = {
     allTestGroupsTask(
       s,
@@ -1517,6 +1523,7 @@ object Defaults extends BuildCommon {
       javaOptions = Nil,
       strategy = ClassLoaderLayeringStrategy.ScalaLibrary,
       projectId = "",
+      bspTask
     )
   }
 
@@ -1530,7 +1537,8 @@ object Defaults extends BuildCommon {
       forkedParallelExecution: Boolean,
       javaOptions: Seq[String],
       strategy: ClassLoaderLayeringStrategy,
-      projectId: String
+      projectId: String,
+      bspTask: BspTestTask
   ): Initialize[Task[Tests.Output]] = {
     val processedOptions: Map[Tests.Group, Tests.ProcessedOptions] =
       groups
@@ -1623,6 +1631,7 @@ object Defaults extends BuildCommon {
               }
           }
       }
+      bspTask.notifyFinish()
       val summaries =
         runners map {
           case (tf, r) =>

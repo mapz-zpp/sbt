@@ -6,7 +6,7 @@
 package sbt.internal.bsp
 /** Represents a location inside a resource, such as a line inside a text file. */
 final class Location private (
-  val uri: String,
+  val uri: java.net.URI,
   val range: sbt.internal.bsp.Range) extends Serializable {
   
   
@@ -21,10 +21,10 @@ final class Location private (
   override def toString: String = {
     "Location(" + uri + ", " + range + ")"
   }
-  private[this] def copy(uri: String = uri, range: sbt.internal.bsp.Range = range): Location = {
+  private[this] def copy(uri: java.net.URI = uri, range: sbt.internal.bsp.Range = range): Location = {
     new Location(uri, range)
   }
-  def withUri(uri: String): Location = {
+  def withUri(uri: java.net.URI): Location = {
     copy(uri = uri)
   }
   def withRange(range: sbt.internal.bsp.Range): Location = {
@@ -33,5 +33,5 @@ final class Location private (
 }
 object Location {
   
-  def apply(uri: String, range: sbt.internal.bsp.Range): Location = new Location(uri, range)
+  def apply(uri: java.net.URI, range: sbt.internal.bsp.Range): Location = new Location(uri, range)
 }

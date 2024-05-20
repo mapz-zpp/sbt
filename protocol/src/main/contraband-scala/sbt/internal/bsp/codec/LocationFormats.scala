@@ -11,7 +11,7 @@ implicit lazy val LocationFormat: JsonFormat[sbt.internal.bsp.Location] = new Js
     __jsOpt match {
       case Some(__js) =>
       unbuilder.beginObject(__js)
-      val uri = unbuilder.readField[String]("uri")
+      val uri = unbuilder.readField[java.net.URI]("uri")
       val range = unbuilder.readField[sbt.internal.bsp.Range]("range")
       unbuilder.endObject()
       sbt.internal.bsp.Location(uri, range)
