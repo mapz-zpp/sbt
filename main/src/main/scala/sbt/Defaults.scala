@@ -1633,7 +1633,7 @@ object Defaults extends BuildCommon {
               }
           }
       }
-      bspTask.notifyFinish()
+      bspTask.notifyFinish(out.overall.toString)
       val summaries =
         runners map {
           case (tf, r) =>

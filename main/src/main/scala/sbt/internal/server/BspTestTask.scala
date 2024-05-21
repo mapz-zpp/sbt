@@ -44,9 +44,9 @@ case class BspTestTask private (
     StandardMain.exchange.notifyEvent("build/taskStart", params)
   }
 
-  private[sbt] def notifyFinish(): Unit = {
+  private[sbt] def notifyFinish(tmp: Any): Unit = {
     // TODO: Report meaningful test status
-    val message = s"XYZ $targetName"
+    val message = s"DUPAXYZ $targetName" + tmp
     // TODO: Report test status
     val data = Converter.toJsonUnsafe(TestFinish(targetName, Some(message), 1, None, None, None))
     val params = TaskFinishParams(
