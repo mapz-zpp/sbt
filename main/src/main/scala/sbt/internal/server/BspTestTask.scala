@@ -13,6 +13,8 @@ import sbt.internal.bsp.{
   TestStart,
   TestStatusCode
 }
+import sbt.protocol.testing.TestResult
+import sbt.protocol.testing.TestResult.{ Passed, Failed, Error }
 import sjsonnew.support.scalajson.unsafe.Converter
 
 object BspTestTask {
@@ -44,11 +46,17 @@ case class BspTestTask private (
     StandardMain.exchange.notifyEvent("build/taskStart", params)
   }
 
-  private[sbt] def notifyFinish(): Unit = {
+  private[sbt] def notifyFinish(
+      testResult: TestResult,
+      testMessage: String,
+      targetMess: String
+  ): Unit = {
     // TODO: Report meaningful test status
-    val message = s"XYZ $targetName"
+    val message = "XYZ" + testMessage
     // TODO: Report test status
-    val data = Converter.toJsonUnsafe(TestFinish(targetName, Some(message), 1, None, None, None))
+    val testStatus = testResultToCode(testResult)
+    val data =
+      Converter.toJsonUnsafe(TestFinish(targetMess, Some(message), testStatus, None, None, None))
     val params = TaskFinishParams(
       id,
       System.currentTimeMillis(),
@@ -58,5 +66,13 @@ case class BspTestTask private (
       data
     )
     StandardMain.exchange.notifyEvent("build/taskFinish", params)
+  }
+
+  private def testResultToCode(testResult: TestResult): Int = {
+    testResult match {
+      case Passed => 1
+      case Failed => 2
+      case Error  => 3
+    }
   }
 }

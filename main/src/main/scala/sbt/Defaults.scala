@@ -1685,11 +1685,15 @@ object Defaults extends BuildCommon {
             }
         }
       }
-      bspTask.notifyFinish()
+      var frName: String = ""
+      var summaryMess: String = ""
       val summaries =
         runners map { case (tf, r) =>
-          Tests.Summary(frameworks(tf).name, r.done())
+          frName = frameworks(tf).name
+          summaryMess = r.done()
+          Tests.Summary(frName, summaryMess)
         }
+      bspTask.notifyFinish(out.overall, summaryMess, frName)
       out.copy(summaries = summaries)
     }
     // Def.value[Task[Tests.Output]] {
