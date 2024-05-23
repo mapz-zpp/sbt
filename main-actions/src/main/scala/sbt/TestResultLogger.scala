@@ -118,10 +118,13 @@ object TestResultLogger {
       val multipleFrameworks = results.summaries.size > 1
       for (Summary(name, message) <- results.summaries)
         if (message.isEmpty)
-          log.debug("Summary for " + name + " not available.")
+          log.debug(
+            "Summary for " + name + " not available.",
+            "TestResultLogger::Defaults::printSummary#1"
+          )
         else {
-          if (multipleFrameworks) log.info(name)
-          log.info(message)
+          if (multipleFrameworks) log.info(name, "TestResultLogger::Defaults::printSummary#2")
+          log.info(message, "TestResultLogger::Defaults::printSummary#3")
         }
     })
 
@@ -168,9 +171,12 @@ object TestResultLogger {
 
       val postfix = base + extra.mkString
       results.overall match {
-        case TestResult.Error  => log.error("Error: " + postfix)
-        case TestResult.Passed => log.info("Passed: " + postfix)
-        case TestResult.Failed => log.error("Failed: " + postfix)
+        case TestResult.Error =>
+          log.error("Error: " + postfix, "TestResultLogger::Defaults::printStandard#1")
+        case TestResult.Passed =>
+          log.info("Passed: " + postfix, "TestResultLogger::Defaults::printStandard#2")
+        case TestResult.Failed =>
+          log.error("Failed: " + postfix, "TestResultLogger::Defaults::printStandard#3")
       }
     })
 
@@ -182,8 +188,12 @@ object TestResultLogger {
 
       def show(label: String, level: Level.Value, tests: Iterable[String]): Unit =
         if (tests.nonEmpty) {
-          log.log(level, label)
-          log.log(level, tests.mkString("\t", "\n\t", ""))
+          log.log(level, label, "TestResultLogger::Defaults::printFailures::show#1")
+          log.log(
+            level,
+            tests.mkString("\t", "\n\t", ""),
+            "TestResultLogger::Defaults::printFailures::show#1"
+          )
         }
 
       show("Passed tests:", Level.Debug, select(TestResult.Passed))
@@ -192,7 +202,8 @@ object TestResultLogger {
     })
 
     val printNoTests = TestResultLogger(
-      (log, results, taskName) => log.info("No tests to run for " + taskName)
+      (log, results, taskName) =>
+        log.info("No tests to run for " + taskName, "TestResultLogger::Defaults::printNoTests")
     )
   }
 }

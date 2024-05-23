@@ -28,7 +28,8 @@ private[sbt] object LegacyWatched {
       case None =>
         val watchState = WatchState.empty(watched.watchService(), watched.watchSources(s))
         // This is the first iteration, so run the task and create a new EventMonitor
-        val logger: WatchLogger = (a: Any) => log.debug(a.toString)
+        val logger: WatchLogger = (a: Any) =>
+          log.debug(a.toString, "LegacyWatched/executeContinuously/4")
         val repo = FileTreeRepository.legacy(logger, watched.watchService())
         val fileEventMonitor = FileEventMonitor.antiEntropy(
           repo,
@@ -51,7 +52,8 @@ private[sbt] object LegacyWatched {
           catch {
             case NonFatal(e) =>
               log.error(
-                "Error occurred obtaining files to watch.  Terminating continuous execution..."
+                "Error occurred obtaining files to watch.  Terminating continuous execution...",
+                "LegacyWatched::executeContinuously/4"
               )
               s.handleError(e)
               false

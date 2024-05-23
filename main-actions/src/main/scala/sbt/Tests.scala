@@ -278,11 +278,15 @@ object Tests {
     }
 
     if (excludeTestsSet.nonEmpty)
-      log.debug(excludeTestsSet.mkString("Excluding tests: \n\t", "\n\t", ""))
+      log.debug(
+        excludeTestsSet.mkString("Excluding tests: \n\t", "\n\t", ""),
+        "Tests::processOptions#1"
+      )
     if (undefinedFrameworks.nonEmpty)
       log.warn(
         "Arguments defined for test frameworks that are not present:\n\t" + undefinedFrameworks
-          .mkString("\n\t")
+          .mkString("\n\t"),
+        "Tests::processOptions#2"
       )
 
     def includeTest(test: TestDefinition) =
@@ -561,8 +565,8 @@ object Tests {
     val annotations = fingerprints collect {
       case ann: AnnotatedFingerprint => (ann.annotationName, ann.isModule, ann)
     };
-    log.debug("Subclass fingerprints: " + subclasses)
-    log.debug("Annotation fingerprints: " + annotations)
+    log.debug("Subclass fingerprints: " + subclasses, "Tests::discover#1")
+    log.debug("Annotation fingerprints: " + annotations, "Tests::discover#2")
 
     def firsts[A, B, C](s: Seq[(A, B, C)]): Set[A] = s.map(_._1).toSet
     def defined(

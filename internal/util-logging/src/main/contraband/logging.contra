@@ -6,6 +6,7 @@ package sbt.internal.util
 interface AbstractEntry {
   channelName: String
   execId: String
+  originId: String
 }
 
 type StringEvent implements sbt.internal.util.AbstractEntry {
@@ -13,6 +14,7 @@ type StringEvent implements sbt.internal.util.AbstractEntry {
   message: String!
   channelName: String
   execId: String
+  originId: String
 }
 
 type TraceEvent implements sbt.internal.util.AbstractEntry {
@@ -20,6 +22,7 @@ type TraceEvent implements sbt.internal.util.AbstractEntry {
   message: Throwable!
   channelName: String
   execId: String
+  originId: String
 }
 
 ## used by super shell
@@ -29,6 +32,7 @@ type ProgressEvent implements sbt.internal.util.AbstractEntry {
   lastTaskCount: Int
   channelName: String
   execId: String
+  originId: String
   command: String @since("1.4.0")
   skipIfActive: Boolean @since("1.4.0")
 }

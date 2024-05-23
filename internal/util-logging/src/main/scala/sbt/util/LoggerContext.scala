@@ -27,7 +27,12 @@ import org.apache.logging.log4j.message.ObjectMessage
  * to manage the loggers and appenders without introducing memory leaks.
  */
 sealed trait LoggerContext extends AutoCloseable {
-  def logger(name: String, channelName: Option[String], execId: Option[String]): ManagedLogger
+  def logger(
+      name: String,
+      channelName: Option[String],
+      execId: Option[String],
+      originId: Option[String]
+  ): ManagedLogger
   def clearAppenders(loggerName: String): Unit
   def addAppender(
       loggerName: String,
@@ -51,7 +56,8 @@ object LoggerContext {
     override def logger(
         name: String,
         channelName: Option[String],
-        execId: Option[String]
+        execId: Option[String],
+        originId: Option[String]
     ): ManagedLogger = {
       if (closed.get) {
         throw new IllegalStateException("Tried to create logger for closed LoggerContext")
@@ -73,15 +79,17 @@ object LoggerContext {
       LogExchange.addConfig(name, loggerConfig)
       loggers.add(name)
       val xlogger = new MiniLogger {
-        def log(level: Level.Value, message: => String): Unit =
+        def log(level: Level.Value, message: => String, originId: String): Unit =
           logger.log(
             ConsoleAppender.toXLevel(level),
-            new ObjectMessage(StringEvent(level.toString, message, channelName, execId))
+            new ObjectMessage(
+              StringEvent(level.toString, message, channelName, execId, Some(originId))
+            )
           )
-        def log[T](level: Level.Value, message: ObjectEvent[T]): Unit =
+        def log[T](level: Level.Value, message: ObjectEvent[T], originId: String): Unit =
           logger.log(ConsoleAppender.toXLevel(level), new ObjectMessage(message))
       }
-      new ManagedLogger(name, channelName, execId, xlogger, Some(Terminal.get), this)
+      new ManagedLogger(name, channelName, execId, originId, xlogger, Some(Terminal.get), this)
     }
     override def clearAppenders(loggerName: String): Unit = {
       val lc = config.getLoggerConfig(loggerName)
@@ -118,14 +126,14 @@ object LoggerContext {
     private class Log extends MiniLogger {
       private val consoleAppenders: AtomicReference[Vector[(Appender, Level.Value)]] =
         new AtomicReference(Vector.empty)
-      def log(level: Level.Value, message: => String): Unit = {
+      def log(level: Level.Value, message: => String, originId: String): Unit = {
         val toAppend = consoleAppenders.get.filter { case (a, l) => level.compare(l) >= 0 }
         if (toAppend.nonEmpty) {
           val m = message
-          toAppend.foreach { case (a, l) => a.appendLog(level, m) }
+          toAppend.foreach { case (a, l) => a.appendLog(level, m, Some(originId)) }
         }
       }
-      def log[T](level: Level.Value, message: ObjectEvent[T]): Unit = {
+      def log[T](level: Level.Value, message: ObjectEvent[T], originId: String): Unit = {
         consoleAppenders.get.foreach {
           case (a, l) =>
             if (level.compare(l) >= 0) a.appendObjectEvent(level, message)
@@ -144,14 +152,15 @@ object LoggerContext {
     override def logger(
         name: String,
         channelName: Option[String],
-        execId: Option[String]
+        execId: Option[String],
+        originId: Option[String]
     ): ManagedLogger = {
       if (closed.get) {
         throw new IllegalStateException("Tried to create logger for closed LoggerContext")
       }
       val xlogger = new Log
       loggers.put(name, xlogger)
-      new ManagedLogger(name, channelName, execId, xlogger, Some(Terminal.get), this)
+      new ManagedLogger(name, channelName, execId, originId, xlogger, Some(Terminal.get), this)
     }
     override def clearAppenders(loggerName: String): Unit = {
       loggers.get(loggerName) match {

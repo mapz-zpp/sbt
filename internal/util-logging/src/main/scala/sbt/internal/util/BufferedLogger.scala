@@ -72,9 +72,9 @@ class BufferedAppender(override val name: String, delegate: Appender) extends Ap
     new java.util.Vector[Either[XLogEvent, (Level.Value, Option[String], Option[ObjectEvent[_]])]]
   private[this] var recording = false
 
-  override def appendLog(level: Level.Value, message: => String): Unit = {
+  override def appendLog(level: Level.Value, message: => String, originId: Option[String]): Unit = {
     if (recording) Util.ignoreResult(buffer.add(Right((level, Some(message), None))))
-    else delegate.appendLog(level, message)
+    else delegate.appendLog(level, message, originId)
   }
   override private[sbt] def appendObjectEvent[T](
       level: Level.Value,

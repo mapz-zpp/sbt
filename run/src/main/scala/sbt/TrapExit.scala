@@ -44,12 +44,15 @@ object TrapExit {
   def uninstallManager(previous: Any): Unit = ()
 
   private[this] def runUnmanaged(execute: => Unit, log: Logger): Int = {
-    log.warn("Managed execution not possible: security manager not installed.")
+    log.warn(
+      "Managed execution not possible: security manager not installed.",
+      "TrapExit::runUnmanaged/2"
+    )
     try {
       execute; 0
     } catch {
       case e: Exception =>
-        log.error("Error during execution: " + e.toString)
+        log.error("Error during execution: " + e.toString, "TrapExit::runUnmanaged/2-catch")
         log.trace(e)
         1
     }

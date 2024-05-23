@@ -193,7 +193,7 @@ object Command {
     else parse(command, state.nonMultiParser)) match {
       case Right(s) => s() // apply command.  command side effects happen here
       case Left(errMsg) =>
-        state.log error errMsg
+        state.log.error(errMsg, state.currentCommand.flatMap(_.originId).getOrElse("Command::process"))
         onParseError(errMsg)
         state.fail
     }

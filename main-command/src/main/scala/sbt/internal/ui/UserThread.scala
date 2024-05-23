@@ -90,7 +90,7 @@ private[sbt] class UserThread(val channel: CommandChannel) extends AutoCloseable
           terminal.setPrompt(Prompt.AskUser(() => UITask.shellPrompt(terminal, state)))
         case _ =>
       }
-      onProgressEvent(ProgressEvent("Info", Vector(), None, None, None))
+      onProgressEvent(ProgressEvent("Info", Vector(), None, None, None, None))
       reset(state)
     }
 

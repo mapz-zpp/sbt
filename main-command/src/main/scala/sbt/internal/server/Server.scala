@@ -97,11 +97,14 @@ private[sbt] object Server {
                 case null =>
                 case s    => s.close()
               }
-              log.info(s"sbt server - TM9 started at ${connection.shortName}")
+              log.info(
+                s"sbt server - TM12 started at ${connection.shortName}",
+                "Server::start::serverThread::run"
+              )
 
               writePortfile()
               if (connection.bspEnabled) {
-                log.debug("Writing bsp connection file")
+                log.debug("Writing bsp connection file", "")
                 BuildServerConnection.writeConnectionFile(
                   appConfiguration.provider.id.version,
                   appConfiguration.baseDirectory
@@ -160,8 +163,7 @@ private[sbt] object Server {
       }
 
       override def shutdown(): Unit = {
-        log.info("HELLLLLLLO")
-        log.info("HELLLLLO shutting down sbt server")
+        log.info("HELLLLLO shutting down sbt server", "")
         if (portfile.exists) {
           IO.delete(portfile)
         }

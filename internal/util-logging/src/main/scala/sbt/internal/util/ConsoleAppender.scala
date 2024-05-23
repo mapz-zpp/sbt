@@ -12,7 +12,6 @@ import java.io.{ PrintStream, PrintWriter }
 import java.lang.StringBuilder
 import java.nio.channels.ClosedChannelException
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
-
 import org.apache.logging.log4j.core.appender.AbstractAppender
 import org.apache.logging.log4j.core.{ Appender => XAppender, LogEvent => XLogEvent }
 import org.apache.logging.log4j.message.{ Message, ObjectMessage, ReusableObjectMessage }
@@ -21,7 +20,9 @@ import sbt.internal.util.ConsoleAppender._
 import sbt.util._
 import org.apache.logging.log4j.core.AbstractLogEvent
 import org.apache.logging.log4j.message.SimpleMessageFactory
+
 import java.util.concurrent.atomic.AtomicReference
+import scala.annotation.nowarn
 
 object ConsoleLogger {
   // These are provided so other modules do not break immediately.
@@ -93,9 +94,9 @@ class ConsoleLogger private[ConsoleLogger] (
   ): Unit =
     appender.control(event, message)
 
-  override def log(level: Level.Value, message: => String): Unit =
+  override def log(level: Level.Value, message: => String, originId: String): Unit =
     if (atLevel(level)) {
-      appender.appendLog(level, message)
+      appender.appendLog(level, message, Some(originId))
     }
 
   override def success(message: => String): Unit =
@@ -433,13 +434,11 @@ trait Appender extends AutoCloseable {
   def control(event: ControlEvent.Value, message: => String): Unit =
     appendLog(labelColor(Level.Info), Level.Info.toString, BLUE, message)
 
-  /**
-   * Appends the message `message` to the to the log at level `level`.
-   *
-   * @param level   The importance level of the message.
-   * @param message The message to log.
-   */
-  def appendLog(level: Level.Value, message: => String): Unit = {
+  def appendLog(
+      level: Level.Value,
+      message: => String,
+      @nowarn originId: Option[String] = None
+  ): Unit = {
     appendLog(labelColor(level), level.toString, NO_COLOR, message)
   }
 
@@ -522,7 +521,7 @@ trait Appender extends AutoCloseable {
     msg match {
       case o: ObjectMessage         => appendMessageContent(level, o.getParameter)
       case o: ReusableObjectMessage => appendMessageContent(level, o.getParameter)
-      case _                        => appendLog(level, msg.getFormattedMessage)
+      case _                        => appendLog(level, msg.getFormattedMessage, Some("ConsoleAppender::appendMessage/2"))
     }
 
   private def appendTraceEvent(te: TraceEvent): Unit = {
@@ -560,7 +559,12 @@ trait Appender extends AutoCloseable {
                 level,
                 _
               ))
-            case _ => appendLog(level, oe.message.toString)
+            case _ =>
+              appendLog(
+                level,
+                oe.message.toString,
+                Some("Appender::appendMessageContent::appendEvent/1")
+              )
           }
       }
     }
@@ -597,7 +601,11 @@ private[sbt] class ConsoleAppenderFromLog4J(
     this(name, Properties.from(Terminal.get), _ => None, delegate)
   override def close(): Unit = delegate.stop()
   private[sbt] def toLog4J: XAppender = delegate
-  override def appendLog(level: sbt.util.Level.Value, message: => String): Unit = {
+  override def appendLog(
+      level: sbt.util.Level.Value,
+      message: => String,
+      @nowarn originId: Option[String]
+  ): Unit = {
     delegate.append(new AbstractLogEvent {
       override def getLevel(): XLevel = ConsoleAppender.toXLevel(level)
       override def getMessage(): Message =

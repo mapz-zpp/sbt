@@ -71,7 +71,7 @@ class GCMonitor(logger: Logger) extends GCMonitorBase with AutoCloseable {
       s"max ${gbString(runtime.maxMemory())}] " +
       "Consider increasing the JVM heap using `-Xmx` or try " +
       "a different collector, e.g. `-XX:+UseG1GC`, for better performance."
-    logger.warn(msg)
+    logger.warn(msg, "")
   }
 
   val removers = ManagementFactory.getGarbageCollectorMXBeans.asScala.flatMap {

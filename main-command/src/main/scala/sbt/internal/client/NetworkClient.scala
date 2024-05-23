@@ -258,7 +258,8 @@ class NetworkClient(
                         val toSend = cmd.getBytes :+ '\r'.toByte
                         toSend.foreach(b => sendNotification(systemIn, b.toString))
                       }
-                  } else completeExec(execId, 0)
+                  } else
+                    completeExec(execId, 0, "NetworkClient::init/ServerConnection::onNotification")
                 case _ =>
               }
             } else {
@@ -527,7 +528,7 @@ class NetworkClient(
         .getOrElse(1)
     case _ => 1
   }
-  private def completeExec(execId: String, exitCode: => Int): Unit =
+  private def completeExec(execId: String, exitCode: => Int, originId: String): Unit =
     pendingResults.remove(execId) match {
       case null =>
       case (q, startTime, name) =>
@@ -536,12 +537,12 @@ class NetworkClient(
         val ec = exitCode
         if (batchMode.get || !attached.get) {
           if (ec == 0) console.success(message)
-          else console.appendLog(Level.Error, message)
+          else console.appendLog(Level.Error, message, Some(originId))
         }
         Util.ignoreResult(q.offer(ec))
     }
   def onResponse(msg: JsonRpcResponseMessage): Unit = {
-    completeExec(msg.id, getExitCode(msg.result))
+    completeExec(msg.id, getExitCode(msg.result), "NetworkClient::onResponse")
     pendingCancellations.remove(msg.id) match {
       case null =>
       case q    => q.offer(msg.toString.contains("Task cancelled"))
@@ -1039,7 +1040,13 @@ object NetworkClient {
           message: => String,
           originId: Option[String]
       ): Unit =
-        appender.appendLog(level, message)
+        appender.appendLog(
+          level,
+          message,
+          originId.orElse(
+            Some("NetworkClient.consoleAppenderInterface.ConsoleInterface.appendLog/3")
+          )
+        )
       override def success(msg: String): Unit = appender.success(msg)
     }
   }

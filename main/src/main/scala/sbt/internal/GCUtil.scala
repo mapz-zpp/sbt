@@ -33,7 +33,7 @@ private[sbt] object GCUtil {
 
   def forceGc(log: Logger): Unit =
     try {
-      log.debug(s"Forcing garbage collection...")
+      log.debug(s"Forcing garbage collection...", "")
       // Force the detection of finalizers for scala.reflect weakhashsets
       System.gc()
       // Force finalizers to run.

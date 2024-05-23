@@ -71,7 +71,7 @@ private[sbt] object ClassLoaders {
     val opts = forkOptions.value
     val options = javaOptions.value
     if (fork.value) {
-      s.log.debug(s"javaOptions: $options")
+      s.log.debug(s"javaOptions: $options", "ClassLoaders::runner")
       Def.task(new ForkRun(opts))
     } else {
       Def.task {
@@ -87,7 +87,10 @@ private[sbt] object ClassLoaders {
             (resolvedScope / fork).key.label,
             mask
           )
-          s.log.warn(s"$showJavaOptions will be ignored, $showFork is set to false")
+          s.log.warn(
+            s"$showJavaOptions will be ignored, $showFork is set to false",
+            "ClassLoader::runner#2"
+          )
         }
         val exclude = dependencyJars(exportedProducts).value.toSet ++ instance.libraryJars
         val allDeps = dependencyJars(dependencyClasspath).value.filterNot(exclude)

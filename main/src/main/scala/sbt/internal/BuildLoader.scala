@@ -64,9 +64,9 @@ final class MultiHandler[S, T](
     }
 
   private[this] def warn(baseMessage: String, log: Logger, matching: Seq[(URI, T)]): Unit = {
-    log.warn(baseMessage)
-    log.debug("Non-root build resolvers defined in:")
-    log.debug(matching.map(_._1).mkString("\n\t"))
+    log.warn(baseMessage, "BuildLoader::warn#1")
+    log.debug("Non-root build resolvers defined in:", "BuildLoader::warn#1")
+    log.debug(matching.map(_._1).mkString("\n\t"), "BuildLoader::warn#1")
   }
 }
 

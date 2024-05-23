@@ -90,6 +90,6 @@ object IvyConsole {
       case DepPattern(group, cross, name, version) =>
         val crossV = if (cross.trim.isEmpty) Disabled() else CrossVersion.binary
         ModuleID(group.trim, name.trim, version.trim).withCrossVersion(crossV) :: Nil
-      case _ => log.warn("Ignoring invalid argument '" + arg + "'"); Nil
+      case _ => log.warn("Ignoring invalid argument '" + arg + "'", ""); Nil
     }
 }

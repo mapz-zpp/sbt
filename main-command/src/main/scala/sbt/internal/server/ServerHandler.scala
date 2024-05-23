@@ -30,10 +30,23 @@ object ServerHandler {
 
   lazy val fallback: ServerHandler = ServerHandler({ handler =>
     ServerIntent(
-      onRequest = { case x  => handler.log.debug(s"Unhandled request received: ${x.method}: $x") },
-      onResponse = { case x => handler.log.debug(s"Unhandled response received") },
+      onRequest = {
+        case x =>
+          handler.log.debug(
+            s"Unhandled request received: ${x.method}: $x",
+            "ServerHandler.fallback.onRequest/1"
+          )
+      },
+      onResponse = {
+        case x =>
+          handler.log.debug(s"Unhandled response received", "ServerHandler.fallback.onResponse/1")
+      },
       onNotification = {
-        case x => handler.log.debug(s"Unhandled notification received: ${x.method}: $x")
+        case x =>
+          handler.log.debug(
+            s"Unhandled notification received: ${x.method}: $x",
+            "ServerHandler.fallback.onNotification/1"
+          )
       },
     )
   })

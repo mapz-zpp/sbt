@@ -137,7 +137,7 @@ private[sbt] class TaskProgress(
       case l    => l.close()
     }
     // send an empty progress report to clear out the previous report
-    appendProgress(ProgressEvent("Info", Vector(), Some(lastTaskCount.get), None, None))
+    appendProgress(ProgressEvent("Info", Vector(), Some(lastTaskCount.get), None, None, None))
   }
   private[this] val skipReportTasks =
     Set(
@@ -181,7 +181,8 @@ private[sbt] class TaskProgress(
           None,
           None,
           None,
-          Some(skip)
+          None,
+          Some(skip),
         )
       }
       lastTaskCount.set(currentTasksCount)

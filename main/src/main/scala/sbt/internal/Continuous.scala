@@ -19,7 +19,6 @@ import java.util.concurrent.{
   TimeoutException
 }
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
-
 import sbt.BasicCommandStrings._
 import sbt.Def._
 import sbt.Keys._
@@ -40,7 +39,7 @@ import sbt.nio.file.{ FileAttributes, Glob }
 import sbt.nio.{ FileStamp, FileStamper, Watch }
 import sbt.util.{ Level, _ }
 
-import scala.annotation.tailrec
+import scala.annotation.{ tailrec }
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration.FiniteDurationIsOrdered
 import scala.concurrent.duration._
@@ -186,7 +185,10 @@ private[sbt] object Continuous extends DeprecatedContinuous {
 
     val repository = getRepository(state)
     dynamicInputs ++= inputs
-    logger.debug(s"[watch] [${scopedKey.show}] Found inputs: ${inputs.map(_.glob).mkString(",")}")
+    logger.debug(
+      s"[watch] [${scopedKey.show}] Found inputs: ${inputs.map(_.glob).mkString(",")}",
+      ""
+    )
     inputs.foreach(i => repository.register(i.glob).foreach(_.close()))
     val watchSettings = new WatchSettings(scopedKey)
     new Config(
@@ -412,10 +414,10 @@ private[sbt] object Continuous extends DeprecatedContinuous {
         ws.onIteration.map(_(count, project, commands)).getOrElse {
           if (configs.size == 1) { // Only allow custom start messages for single tasks
             ws.startMessage match {
-              case Some(Left(sm))  => logger.info(sm(params.watchState(count)))
-              case Some(Right(sm)) => sm(count, project, commands).foreach(logger.info(_))
+              case Some(Left(sm))  => logger.info(sm(params.watchState(count)), "")
+              case Some(Right(sm)) => sm(count, project, commands).foreach(logger.info(_, ""))
               case None =>
-                Watch.defaultStartWatch(count, project, commands).foreach(logger.info(_))
+                Watch.defaultStartWatch(count, project, commands).foreach(logger.info(_, ""))
             }
           }
           Watch.Ignore
@@ -428,7 +430,7 @@ private[sbt] object Continuous extends DeprecatedContinuous {
       if (configs.size > 1) {
         val onStartWatch =
           extracted.getOpt((project / watchStartMessage)).getOrElse(Watch.defaultStartWatch)
-        onStartWatch(count, project, commands).foreach(logger.info(_))
+        onStartWatch(count, project, commands).foreach(logger.info(_, ""))
       }
       res
     }
@@ -527,7 +529,7 @@ private[sbt] object Continuous extends DeprecatedContinuous {
         observers.close()
       }
     }
-    val watchLogger: WatchLogger = msg => logger.debug(msg.toString)
+    val watchLogger: WatchLogger = msg => logger.debug(msg.toString, "")
     val antiEntropy = configs.map(_.watchSettings.antiEntropy).max
     val antiEntropyMonitor = FileEventMonitor.antiEntropy(
       monitor,
@@ -555,15 +557,15 @@ private[sbt] object Continuous extends DeprecatedContinuous {
               if (forceTrigger) {
                 val msg =
                   s"Creating forced update event for path $path (previous stamp: $p, current stamp: $c)"
-                logger.debug(msg)
+                logger.debug(msg, "")
                 Some(Update(event))
               } else if (p == c) {
-                logger.debug(s"Dropping event for unmodified path $path")
+                logger.debug(s"Dropping event for unmodified path $path", "")
                 None
               } else {
                 val msg =
                   s"Creating update event for modified $path (previous stamp: $p, current stamp: $c)"
-                logger.debug(msg)
+                logger.debug(msg, "")
                 Some(Update(event))
               }
             case _ => None
@@ -596,7 +598,7 @@ private[sbt] object Continuous extends DeprecatedContinuous {
           val watchEvent =
             if (useHash) getWatchEvent(forceTrigger)
             else {
-              logger.debug(s"Trigger path detected $path")
+              logger.debug(s"Trigger path detected $path", "")
               Some(
                 if (!event.exists) Deletion(event)
                 else if (fileStampCache.get(path).isDefined) Creation(event)
@@ -619,11 +621,11 @@ private[sbt] object Continuous extends DeprecatedContinuous {
       if (configs.size == 1) {
         val config = configs.head
         config.watchSettings.triggerMessage match {
-          case Left(tm)  => logger.info(tm(config.watchState(count)))
-          case Right(tm) => tm(count, event.path, commands).foreach(logger.info(_))
+          case Left(tm)  => logger.info(tm(config.watchState(count)), "")
+          case Right(tm) => tm(count, event.path, commands).foreach(logger.info(_, ""))
         }
       } else {
-        Watch.defaultOnTriggerMessage(count, event.path, commands).foreach(logger.info(_))
+        Watch.defaultOnTriggerMessage(count, event.path, commands).foreach(logger.info(_, ""))
       }
     }
 
@@ -645,7 +647,7 @@ private[sbt] object Continuous extends DeprecatedContinuous {
               builder.append(a.toString)
               a
           }
-          logger.debug(s"Received file event actions: $builder. Returning: $min")
+          logger.debug(s"Received file event actions: $builder. Returning: $min", "")
           if (min._2 == Watch.Trigger) onTrigger(count, min._1)
           if (min._2 == Watch.ShowOptions) None else Some(min)
         } else None
@@ -857,17 +859,17 @@ private[sbt] object Continuous extends DeprecatedContinuous {
         lazy val inputMessage =
           s"Received input event: $inputAction." +
             (if (inputAction != min) s" Dropping in favor of file event: $min" else "")
-        if (inputAction != Watch.Ignore) logger.info(inputMessage)
+        if (inputAction != Watch.Ignore) logger.info(inputMessage, "")
         fileEvent
           .collect {
             case (event, action) if action != Watch.Ignore =>
               s"Received file event $action for $event." +
                 (if (action != min) s" Dropping in favor of input event: $min" else "")
           }
-          .foreach(logger.debug(_))
+          .foreach(logger.debug(_, ""))
         min match {
           case ShowOptions =>
-            rawLogger.info(options)
+            rawLogger.info(options, "")
             Watch.Ignore
           case m => m
         }
@@ -1101,8 +1103,8 @@ private[sbt] object Continuous extends DeprecatedContinuous {
 
       override def success(message: => String): Unit = logger.success(message)
 
-      override def log(level: Level.Value, message: => String): Unit =
-        logger.log(level, s"$prefix - $message")
+      override def log(level: Level.Value, message: => String, originId: String): Unit =
+        logger.log(level, s"$prefix - $message", originId)
     }
   }
 

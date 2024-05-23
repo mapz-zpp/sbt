@@ -89,7 +89,7 @@ object BuildServerProtocol {
       } else {
         val logger = streams.value.log
         logger.warn("BSP is disabled for this build")
-        logger.info("add 'Global / bspEnabled := true' to enable BSP")
+        logger.info("add 'Global / bspEnabled := true' to enable BSP", "")
       }
     },
     bspEnabled := true,
@@ -445,7 +445,7 @@ object BuildServerProtocol {
             val config = configurationMap(scope.config.toOption.get).id
             val task = bspBuildTargetRun.key
             val paramStr = CompactPrinter(paramJson)
-            Files.writeString(Paths.get("/home/mavia/sbt-log"), s"$paramStr\n")
+            Files.writeString(Paths.get("/home/mavia/sbt-log"), s"[bspBuildTargetRun] $paramStr\n")
             val _ = callback.appendExec(
               s"$project / $config / $task $paramStr",
               Some(r.id),
@@ -468,13 +468,13 @@ object BuildServerProtocol {
             val param = Converter.fromJson[JvmRunEnvironmentParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspBuildTargetJVMRunEnvironment.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), param.originId)
 
           case r if r.method == Method.JvmTestEnvironment =>
             val param = Converter.fromJson[JvmTestEnvironmentParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspBuildTargetJVMTestEnvironment.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), param.originId)
 
           case r if r.method == Method.ScalaTestClasses =>
             val param = Converter.fromJson[ScalaTestClassesParams](json(r)).get
@@ -493,18 +493,18 @@ object BuildServerProtocol {
             val param = Converter.fromJson[ResourcesParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspBuildTargetResources.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), None)
 
           case r if r.method == Method.OutputPaths =>
             val param = Converter.fromJson[OutputPathsParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspBuildTargetOutputPaths.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), None)
         },
         onResponse = PartialFunction.empty,
         onNotification = {
           case r if r.method == Method.Exit =>
-            val _ = callback.appendExec(BasicCommandStrings.TerminateAction, None)
+            val _ = callback.appendExec(BasicCommandStrings.TerminateAction, None, None)
         },
       )
     }

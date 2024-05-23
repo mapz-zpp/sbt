@@ -35,20 +35,20 @@ class ForkRun(config: ForkOptions) extends ScalaRun {
           )
         )
 
-    log.info(s"running (fork) $mainClass ${Run.runOptionsStr(options)}")
+    log.info(s"running (fork) $mainClass ${Run.runOptionsStr(options)}", "Run::processExitCode/2")
     val c = configLogged(log)
     val scalaOpts = scalaOptions(mainClass, classpath, options)
     val exitCode = try Fork.java(c, scalaOpts)
     catch {
       case _: InterruptedException =>
-        log.warn("Run canceled.")
+        log.warn("Run canceled.", "Run::run-catch")
         1
     }
     processExitCode(exitCode, "runner")
   }
 
   def fork(mainClass: String, classpath: Seq[File], options: Seq[String], log: Logger): Process = {
-    log.info(s"running (fork) $mainClass ${Run.runOptionsStr(options)}")
+    log.info(s"running (fork) $mainClass ${Run.runOptionsStr(options)}", "Run::fork")
 
     val c = configLogged(log)
     val scalaOpts = scalaOptions(mainClass, classpath, options)
@@ -85,11 +85,11 @@ class Run(private[sbt] val newLoader: Seq[File] => ClassLoader, trapExit: Boolea
       options: Seq[String],
       log: Logger
   ): Try[Unit] = {
-    log.info(s"running $mainClass ${Run.runOptionsStr(options)}")
+    log.info(s"running $mainClass ${Run.runOptionsStr(options)}", "Run::runWithLoader/5")
 
     def execute(): Unit =
       try {
-        log.debug("  Classpath:\n\t" + classpath.mkString("\n\t"))
+        log.debug("  Classpath:\n\t" + classpath.mkString("\n\t"), "Run::runWithLoader::execute/0")
         val main = getMainMethod(mainClass, loader)
         invokeMain(loader, main, options)
       } catch {
@@ -104,7 +104,7 @@ class Run(private[sbt] val newLoader: Seq[File] => ClassLoader, trapExit: Boolea
                     "that attempted to load it.\n" +
                     "See https://www.scala-sbt.org/1.x/docs/In-Process-Classloaders.html for " +
                     "further information."
-                log.error(msg)
+                log.error(msg, "Run::runWithLoader::execute/0-InvocationTargetException")
               } catch { case NonFatal(_) => }
               throw ex
             case ex => throw ex

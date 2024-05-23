@@ -11,23 +11,24 @@ final class ProgressEvent private (
   val lastTaskCount: Option[Int],
   channelName: Option[String],
   execId: Option[String],
+  originId: Option[String],
   val command: Option[String],
-  val skipIfActive: Option[Boolean]) extends sbt.internal.util.AbstractEntry(channelName, execId) with Serializable {
+  val skipIfActive: Option[Boolean]) extends sbt.internal.util.AbstractEntry(channelName, execId, originId) with Serializable {
   
-  private def this(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Option[Int], channelName: Option[String], execId: Option[String]) = this(level, items, lastTaskCount, channelName, execId, None, None)
+  private def this(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Option[Int], channelName: Option[String], execId: Option[String], originId: Option[String]) = this(level, items, lastTaskCount, channelName, execId, originId, None, None)
   
   override def equals(o: Any): Boolean = this.eq(o.asInstanceOf[AnyRef]) || (o match {
-    case x: ProgressEvent => (this.level == x.level) && (this.items == x.items) && (this.lastTaskCount == x.lastTaskCount) && (this.channelName == x.channelName) && (this.execId == x.execId) && (this.command == x.command) && (this.skipIfActive == x.skipIfActive)
+    case x: ProgressEvent => (this.level == x.level) && (this.items == x.items) && (this.lastTaskCount == x.lastTaskCount) && (this.channelName == x.channelName) && (this.execId == x.execId) && (this.originId == x.originId) && (this.command == x.command) && (this.skipIfActive == x.skipIfActive)
     case _ => false
   })
   override def hashCode: Int = {
-    37 * (37 * (37 * (37 * (37 * (37 * (37 * (37 * (17 + "sbt.internal.util.ProgressEvent".##) + level.##) + items.##) + lastTaskCount.##) + channelName.##) + execId.##) + command.##) + skipIfActive.##)
+    37 * (37 * (37 * (37 * (37 * (37 * (37 * (37 * (37 * (17 + "sbt.internal.util.ProgressEvent".##) + level.##) + items.##) + lastTaskCount.##) + channelName.##) + execId.##) + originId.##) + command.##) + skipIfActive.##)
   }
   override def toString: String = {
-    "ProgressEvent(" + level + ", " + items + ", " + lastTaskCount + ", " + channelName + ", " + execId + ", " + command + ", " + skipIfActive + ")"
+    "ProgressEvent(" + level + ", " + items + ", " + lastTaskCount + ", " + channelName + ", " + execId + ", " + originId + ", " + command + ", " + skipIfActive + ")"
   }
-  private[this] def copy(level: String = level, items: Vector[sbt.internal.util.ProgressItem] = items, lastTaskCount: Option[Int] = lastTaskCount, channelName: Option[String] = channelName, execId: Option[String] = execId, command: Option[String] = command, skipIfActive: Option[Boolean] = skipIfActive): ProgressEvent = {
-    new ProgressEvent(level, items, lastTaskCount, channelName, execId, command, skipIfActive)
+  private[this] def copy(level: String = level, items: Vector[sbt.internal.util.ProgressItem] = items, lastTaskCount: Option[Int] = lastTaskCount, channelName: Option[String] = channelName, execId: Option[String] = execId, originId: Option[String] = originId, command: Option[String] = command, skipIfActive: Option[Boolean] = skipIfActive): ProgressEvent = {
+    new ProgressEvent(level, items, lastTaskCount, channelName, execId, originId, command, skipIfActive)
   }
   def withLevel(level: String): ProgressEvent = {
     copy(level = level)
@@ -53,6 +54,12 @@ final class ProgressEvent private (
   def withExecId(execId: String): ProgressEvent = {
     copy(execId = Option(execId))
   }
+  def withOriginId(originId: Option[String]): ProgressEvent = {
+    copy(originId = originId)
+  }
+  def withOriginId(originId: String): ProgressEvent = {
+    copy(originId = Option(originId))
+  }
   def withCommand(command: Option[String]): ProgressEvent = {
     copy(command = command)
   }
@@ -68,8 +75,8 @@ final class ProgressEvent private (
 }
 object ProgressEvent {
   
-  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Option[Int], channelName: Option[String], execId: Option[String]): ProgressEvent = new ProgressEvent(level, items, lastTaskCount, channelName, execId)
-  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Int, channelName: String, execId: String): ProgressEvent = new ProgressEvent(level, items, Option(lastTaskCount), Option(channelName), Option(execId))
-  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Option[Int], channelName: Option[String], execId: Option[String], command: Option[String], skipIfActive: Option[Boolean]): ProgressEvent = new ProgressEvent(level, items, lastTaskCount, channelName, execId, command, skipIfActive)
-  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Int, channelName: String, execId: String, command: String, skipIfActive: Boolean): ProgressEvent = new ProgressEvent(level, items, Option(lastTaskCount), Option(channelName), Option(execId), Option(command), Option(skipIfActive))
+  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Option[Int], channelName: Option[String], execId: Option[String], originId: Option[String]): ProgressEvent = new ProgressEvent(level, items, lastTaskCount, channelName, execId, originId)
+  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Int, channelName: String, execId: String, originId: String): ProgressEvent = new ProgressEvent(level, items, Option(lastTaskCount), Option(channelName), Option(execId), Option(originId))
+  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Option[Int], channelName: Option[String], execId: Option[String], originId: Option[String], command: Option[String], skipIfActive: Option[Boolean]): ProgressEvent = new ProgressEvent(level, items, lastTaskCount, channelName, execId, originId, command, skipIfActive)
+  def apply(level: String, items: Vector[sbt.internal.util.ProgressItem], lastTaskCount: Int, channelName: String, execId: String, originId: String, command: String, skipIfActive: Boolean): ProgressEvent = new ProgressEvent(level, items, Option(lastTaskCount), Option(channelName), Option(execId), Option(originId), Option(command), Option(skipIfActive))
 }

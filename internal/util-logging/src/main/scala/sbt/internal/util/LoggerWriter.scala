@@ -38,7 +38,7 @@ class LoggerWriter(
   def flushLines(level: Level.Value): Unit =
     synchronized {
       for (line <- lines)
-        delegate.log(level, line)
+        delegate.log(level, line, "LoggerWriter::flushLines/2")
       lines.clear()
     }
 
@@ -60,6 +60,6 @@ class LoggerWriter(
   private[this] def log(s: String): Unit = unbufferedLevel match {
     case None =>
       lines += s; ()
-    case Some(level) => delegate.log(level, s)
+    case Some(level) => delegate.log(level, s, "LoggerWriter::log/1")
   }
 }

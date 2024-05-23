@@ -58,7 +58,8 @@ class JUnitXmlTestsListener(val targetDir: File, legacyTestReport: Boolean, logg
       logger.warn(
         s"Getting the hostname $name was slow (${elapsed / 1.0e6} ms). " +
           "This is likely because the computer's hostname is not set. You can set the " +
-          """hostname with the command: scutil --set HostName "$(scutil --get LocalHostName).local"."""
+          """hostname with the command: scutil --set HostName "$(scutil --get LocalHostName).local".""",
+        "JUnitXmlTestsListener"
       )
     }
     name

@@ -20,15 +20,15 @@ class FullLogger(delegate: Logger) extends BasicLogger {
     if (traceEnabled)
       delegate.trace(t)
   }
-  def log(level: Level.Value, message: => String): Unit = {
+  def log(level: Level.Value, message: => String, originId: String): Unit = {
     if (atLevel(level))
-      delegate.log(level, message)
+      delegate.log(level, message, originId)
   }
   def success(message: => String): Unit =
     if (successEnabled)
       delegate.success(message)
   def control(event: ControlEvent.Value, message: => String): Unit =
-    info(message)
+    info(message, "FullLogger::control/2")
   def logAll(events: Seq[LogEvent]): Unit = events.foreach(log)
 }
 object FullLogger {

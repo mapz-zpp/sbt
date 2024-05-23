@@ -312,11 +312,12 @@ private[sbt] object CrossJava {
                 "configuration. This could result in subprojects cross building against Java versions that they are " +
                 "not compatible with. Try issuing cross building command with tasks instead, since sbt will be able " +
                 "to ensure that cross building is only done using configured project and Java version combinations " +
-                "that are configured."
+                "that are configured.",
+              ""
             )
-            state.log.debug("Java versions configuration is:")
+            state.log.debug("Java versions configuration is:", "")
             projCrossVersions.foreach {
-              case (project, versions) => state.log.debug(s"$project: $versions")
+              case (project, versions) => state.log.debug(s"$project: $versions", "")
             }
           }
 

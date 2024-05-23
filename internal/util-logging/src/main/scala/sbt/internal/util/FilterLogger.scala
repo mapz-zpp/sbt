@@ -25,9 +25,9 @@ class FilterLogger(delegate: AbstractLogger) extends BasicLogger {
   override def successEnabled = delegate.successEnabled
   override def setTrace(level: Int): Unit = delegate.setTrace(level)
   override def getTrace = delegate.getTrace
-  def log(level: Level.Value, message: => String): Unit = {
+  def log(level: Level.Value, message: => String, originId: String): Unit = {
     if (atLevel(level))
-      delegate.log(level, message)
+      delegate.log(level, message, originId)
   }
   def success(message: => String): Unit = {
     if (successEnabled)

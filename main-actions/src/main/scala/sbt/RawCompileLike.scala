@@ -63,7 +63,7 @@ object RawCompileLike {
             if (inChanged || outChanged)
               doCompile(sources, classpath, outputDirectory, options, maxErrors, log)
             else
-              log.debug("Uptodate: " + outputDirectory.getAbsolutePath)
+              log.debug("Uptodate: " + outputDirectory.getAbsolutePath, "RawCompileLike::cached")
         }
       }
       cachedComp(inputs)(exists(outputDirectory.allPaths.get().toSet))
@@ -72,13 +72,19 @@ object RawCompileLike {
   def prepare(description: String, doCompile: Gen): Gen =
     (sources, classpath, outputDirectory, options, maxErrors, log) => {
       if (sources.isEmpty)
-        log.info("No sources available, skipping " + description + "...")
+        log.info(
+          "No sources available, skipping " + description + "...",
+          "RawCompileLike::prepare#1"
+        )
       else {
-        log.info(description.capitalize + " to " + outputDirectory.absolutePath + "...")
+        log.info(
+          description.capitalize + " to " + outputDirectory.absolutePath + "...",
+          "RawCompileLike::prepare#2"
+        )
         IO.delete(outputDirectory)
         IO.createDirectory(outputDirectory)
         doCompile(sources, classpath, outputDirectory, options, maxErrors, log)
-        log.info(description.capitalize + " successful.")
+        log.info(description.capitalize + " successful.", "RawCompileLike::prepare#3")
       }
     }
 

@@ -97,7 +97,8 @@ private[sbt] object ForkTests {
             } catch {
               case e: java.net.SocketException =>
                 log.error(
-                  "Could not accept connection from test agent: " + e.getClass + ": " + e.getMessage
+                  "Could not accept connection from test agent: " + e.getClass + ": " + e.getMessage,
+                  "ForkTests::Acceptor::run"
                 )
                 log.trace(e)
                 server.close()
@@ -203,13 +204,13 @@ private final class React(
     case `Done` =>
       os.writeObject(Done); os.flush()
     case Array(`Error`, s: String) =>
-      log.error(s); react()
+      log.error(s, "ForkTests::React::react#1"); react()
     case Array(`Warn`, s: String) =>
-      log.warn(s); react()
+      log.warn(s, "ForkTests::React::react#1"); react()
     case Array(`Info`, s: String) =>
-      log.info(s); react()
+      log.info(s, "ForkTests::React::react#1"); react()
     case Array(`Debug`, s: String) =>
-      log.debug(s); react()
+      log.debug(s, "ForkTests::React::react#1"); react()
     case t: Throwable =>
       log.trace(t); react()
     case Array(group: String, tEvents: Array[Event]) =>

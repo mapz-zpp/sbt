@@ -33,7 +33,7 @@ import sbt.protocol.{ ExecStatusEvent, LogEvent }
 import sbt.util.Logger
 import sjsonnew.JsonFormat
 
-import java.nio.file.{ Files, Paths, StandardOpenOption }
+//import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
@@ -99,8 +99,12 @@ private[sbt] final class CommandExchange {
               case null if idleDeadline.fold(false)(_.isOverdue) =>
                 state.foreach { s =>
                   s.get(BasicKeys.serverIdleTimeout) match {
-                    case Some(Some(d)) => s.log.info(s"sbt idle timeout of $d expired")
-                    case _             =>
+                    case Some(Some(d)) =>
+                      s.log.info(
+                        s"sbt idle timeout of $d expired",
+                        s.originId.getOrElse("CommandExchange::poll")
+                      )
+                    case _ =>
                   }
                 }
                 Exec(TerminateAction, Some(CommandSource(ConsoleChannel.defaultName)), None)
@@ -110,11 +114,11 @@ private[sbt] final class CommandExchange {
         })
         catch { case _: InterruptedException => None }
       }
-      Files.writeString(
-        Paths.get("/home/mavia/sbt-log"),
-        s"[CommandExchange::impl] poll=$poll\n",
-        StandardOpenOption.APPEND
-      )
+//      Files.writeString(
+//        Paths.get("/home/mavia/sbt-log"),
+//        s"[CommandExchange::impl] poll=$poll\n",
+//        StandardOpenOption.APPEND
+//      )
       poll match {
         case Some(exec) if exec.source.fold(true)(s => channels.exists(_.name == s.channelName)) =>
           exec.commandLine match {
@@ -242,19 +246,26 @@ private[sbt] final class CommandExchange {
         case Some(Success(())) =>
           // remember to shutdown only when the server comes up
           server = Some(serverInstance)
-          s.log.info("started sbt server")
+          s.log.info("started sbt server", s.originId.getOrElse("CommandExchange::runServer#1"))
         case Some(Failure(_: AlreadyRunningException)) =>
           s.log.warn(
-            "sbt server could not start because there's another instance of sbt running on this build."
+            "sbt server could not start because there's another instance of sbt running on this build.",
+            s.originId.getOrElse("CommandExchange::runServer#2")
           )
-          s.log.warn("Running multiple instances is unsupported")
+          s.log.warn(
+            "Running multiple instances is unsupported",
+            s.originId.getOrElse("CommandExchange::runServer#3")
+          )
           server = None
           firstInstance.set(false)
         case Some(Failure(e)) =>
-          s.log.error(e.toString)
+          s.log.error(e.toString, s.originId.getOrElse("CommandExchange::runServer#4"))
           server = None
         case None =>
-          s.log.warn(s"sbt server could not start in $d")
+          s.log.warn(
+            s"sbt server could not start in $d",
+            s.originId.getOrElse("CommandExchange::runServer#5")
+          )
           server = None
           firstInstance.set(false)
       }
@@ -488,11 +499,11 @@ private[sbt] final class CommandExchange {
                   case _                                     =>
                 }
                 // HERE
-                Files.writeString(
-                  Paths.get("/home/mavia/sbt-log"),
-                  s"[FastTrackThread::run::impl] t=${t}\n",
-                  StandardOpenOption.APPEND
-                )
+//                Files.writeString(
+//                  Paths.get("/home/mavia/sbt-log"),
+//                  s"[FastTrackThread::run::impl] t=${t}\n",
+//                  StandardOpenOption.APPEND
+//                )
                 commandQueue.add(Exec(t, None, None))
               case `TerminateAction` => exit(mt)
               case `Shutdown` =>

@@ -43,7 +43,11 @@ final class ProjectNavigation(s: State) {
 				if(to.length > 1) gotoParent(to.length - 1, nav, s) else s */ // semantics currently undefined
     }
 
-  def show(): Unit = s.log.info(s"${currentRef.project} (in build ${currentRef.build})")
+  def show(): Unit =
+    s.log.info(
+      s"${currentRef.project} (in build ${currentRef.build})",
+      s.originId.getOrElse("ProjectNavigation::show")
+    )
 
   def selectProject(uri: URI, to: String): State =
     if (structure.units(uri).defined.contains(to))
@@ -59,7 +63,9 @@ final class ProjectNavigation(s: State) {
     else
       fail("Invalid build unit '" + newBuild + "' (type 'projects' to list available builds).")
 
-  def fail(msg: String): State = { s.log.error(msg); s.fail }
+  def fail(msg: String): State = {
+    s.log.error(msg, s.originId.getOrElse("ProjectNavigation::fail")); s.fail
+  }
 
   import Parser._, complete.Parsers._
 

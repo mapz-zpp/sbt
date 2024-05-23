@@ -113,7 +113,7 @@ final class ScriptedTests(
         testResources.readWriteResourceDirectory(g, n) { testDirectory =>
           val disabled = new File(testDirectory, "disabled").isFile
           if (disabled) {
-            log.info("D " + str + " [DISABLED]")
+            log.info("D " + str + " [DISABLED]", "scripted/ScriptedTests::scriptedTest")
             None
           } else {
             try {
@@ -161,25 +161,29 @@ final class ScriptedTests(
     }
     def testFailed(): Unit = {
       if (pending) buffered.clearBuffer() else buffered.stopBuffer()
-      log.error("x " + label + pendingString)
+      log.error("x " + label + pendingString, "scripted/ScriptedTests::testFailed")
     }
 
     try {
       prescripted(testDirectory)
       runTest()
-      log.info("+ " + label + pendingString)
+      log.info("+ " + label + pendingString, "scripted/ScriptedTests::scriptedTest#2")
       if (pending) throw new PendingTestSuccessException(label)
     } catch {
       case e: TestException =>
         testFailed()
         e.getCause match {
-          case null | _: java.net.SocketException => log.error("   " + e.getMessage)
-          case _                                  => if (!pending) e.printStackTrace
+          case null | _: java.net.SocketException =>
+            log.error("   " + e.getMessage, "scripted/ScriptedTests::scriptedTest#3")
+          case _ => if (!pending) e.printStackTrace
         }
         if (!pending) throw e
       case e: PendingTestSuccessException =>
         testFailed()
-        log.error("  Mark as passing to remove this failure.")
+        log.error(
+          "  Mark as passing to remove this failure.",
+          "scripted/ScriptedTests::scriptedTest#4"
+        )
         throw e
       case e: Exception =>
         testFailed()
@@ -214,16 +218,21 @@ final class ListTests(baseDirectory: File, accept: ScriptedTest => Boolean, log:
     val groupName = group.getName
     val allTests = list(group, filter).sortBy(_.getName)
     if (allTests.isEmpty) {
-      log.warn("No tests in test group " + groupName)
+      log.warn("No tests in test group " + groupName, "scripted/ListTests/listTests/1#1")
       Seq.empty
     } else {
       val (included, skipped) =
         allTests.toList.partition(test => accept(ScriptedTest(groupName, test.getName)))
       if (included.isEmpty)
-        log.warn("Test group " + groupName + " skipped.")
+        log.warn("Test group " + groupName + " skipped.", "scripted/ListTests/listTests/1#2")
       else if (skipped.nonEmpty) {
-        log.warn("Tests skipped in group " + group.getName + ":")
-        skipped.foreach(testName => log.warn(" " + testName.getName))
+        log.warn(
+          "Tests skipped in group " + group.getName + ":",
+          "scripted/ListTests/listTests/1#3"
+        )
+        skipped.foreach(
+          testName => log.warn(" " + testName.getName, "scripted/ListTests/listTests/1#4")
+        )
       }
       Seq(included.map(_.getName): _*)
     }

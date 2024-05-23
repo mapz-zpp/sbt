@@ -137,7 +137,7 @@ object Package {
         case MainClass(mainClassName)            => main.put(Attributes.Name.MAIN_CLASS, mainClassName); ()
         case ManifestAttributes(attributes @ _*) => main.asScala ++= attributes; ()
         case FixedTimestamp(value)               => ()
-        case _                                   => log.warn("Ignored unknown package option " + option)
+        case _                                   => log.warn("Ignored unknown package option " + option, "Package::apply#1")
       }
     }
     setVersion(main)
@@ -153,7 +153,7 @@ object Package {
             jar.file
             ()
           } else
-            log.debug("Jar uptodate: " + jar.file)
+            log.debug("Jar uptodate: " + jar.file, "Package::apply#2")
         }
     }
 
@@ -219,15 +219,15 @@ object Package {
       time: Option[Long]
   ): Unit = {
     val path = jar.getAbsolutePath
-    log.debug("Packaging " + path + " ...")
+    log.debug("Packaging " + path + " ...", "Package::makeJar#1")
     if (jar.exists)
       if (jar.isFile)
         IO.delete(jar)
       else
         sys.error(path + " exists, but is not a regular file")
-    log.debug(sourcesDebugString(sources))
+    log.debug(sourcesDebugString(sources), "Package::makeJar#2")
     IO.jar(sources, jar, manifest, time)
-    log.debug("Done packaging.")
+    log.debug("Done packaging.", "Package::makeJar#3")
   }
   def sourcesDebugString(sources: Seq[(File, String)]): String =
     "Input file mappings:\n\t" + (sources map { case (f, s) => s + "\n\t  " + f } mkString ("\n\t"))

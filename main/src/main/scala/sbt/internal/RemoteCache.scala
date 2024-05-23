@@ -296,17 +296,17 @@ object RemoteCache {
                         findJar(classifier, v, jars) match {
                           case Some(jar) =>
                             extractJar(art, jar, copyResources)
-                            log.info(s"remote cache artifact extracted for $p $classifier")
+                            log.info(s"remote cache artifact extracted for $p $classifier", "")
 
                           case None =>
-                            log.info(s"remote cache artifact not found for $p $classifier")
+                            log.info(s"remote cache artifact not found for $p $classifier", "")
                         }
                       }
                       found = true
                     case Left(e) =>
                       val classifier = seqa.map(_.classifier).mkString(" ")
-                      log.info(s"remote cache artifact not found for $p $classifier")
-                      log.debug(e.getMessage)
+                      log.info(s"remote cache artifact not found for $p $classifier", "")
+                      log.debug(e.getMessage, "")
                   }
                 }
             }

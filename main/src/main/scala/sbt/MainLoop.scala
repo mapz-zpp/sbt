@@ -326,6 +326,7 @@ object MainLoop {
           Vector(),
           ExitCode(ErrorCodes.UnknownError),
           Option(err.getMessage),
+          exec.originId
         )
         StandardMain.exchange.respondStatus(errorEvent)
         throw err

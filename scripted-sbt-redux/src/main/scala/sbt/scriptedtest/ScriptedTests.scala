@@ -62,7 +62,7 @@ final class ScriptedTests(
       val n = nme.getName
       val label = s"$g / $n"
       () => {
-        log.info(s"Running $label")
+        log.info(s"Running $label", "ScriptedTests::singleScriptedTest/5")
         val result = testResources.readWriteResourceDirectory(g, n) { testDirectory =>
           val buffer = new BufferedLogger(new FullLogger(log))
           val singleTestRunner = () => {
@@ -143,7 +143,8 @@ final class ScriptedTests(
 
       def logTests(size: Int, how: String) =
         log.info(
-          f"Running $size / $totalSize (${size * 100d / totalSize}%3.2f%%) scripted tests with $how"
+          f"Running $size / $totalSize (${size * 100d / totalSize}%3.2f%%) scripted tests with $how",
+          ""
         )
       logTests(runFromSourceBasedTests.size, "RunFromSourceMain")
 
@@ -217,7 +218,7 @@ final class ScriptedTests(
       groupedTests.map {
         case ((group, name), originalDir) =>
           val label = s"$group/$name"
-          log.info(s"Running $label")
+          log.info(s"Running $label", "ScriptedTests::runBatchedTests")
           // Copy test's contents and reload the sbt instance to pick them up
           IO.copyDirectory(originalDir, tempTestDir)
 
@@ -271,7 +272,7 @@ final class ScriptedTests(
     val existsDisabled = new File(testDirectory, "disabled").isFile
     if (!existsDisabled) runTest()
     else {
-      log.info(s"D $label [DISABLED]")
+      log.info(s"D $label [DISABLED]", "ScriptedTests::runOrHandleDisabled")
       None
     }
   }
@@ -305,12 +306,16 @@ final class ScriptedTests(
 
     def testFailed(t: Throwable): Option[String] = {
       if (pending) log.clear() else log.stop()
-      log.error(s"x $label $pendingMark")
+      log.error(s"x $label $pendingMark", "ScriptedTests::commandRunTest::testFailed/1")
       if (!NonFatal(t)) throw t // We make sure fatal errors are rethrown
       if (t.isInstanceOf[TestException]) {
         t.getCause match {
-          case null | _: SocketException => log.error(s" Cause of test exception: ${t.getMessage}")
-          case _                         => if (!pending) t.printStackTrace()
+          case null | _: SocketException =>
+            log.error(
+              s" Cause of test exception: ${t.getMessage}",
+              "ScriptedTests::commandRunTest::testFailed/1-noll or exception"
+            )
+          case _ => if (!pending) t.printStackTrace()
         }
       }
       if (pending) None else Some(label)
@@ -324,10 +329,13 @@ final class ScriptedTests(
       runner.apply(handlersAndStatements, states)
 
       // Handle successful tests
-      log.info(s"+ $label $pendingMark")
+      log.info(s"+ $label $pendingMark", "ScriptedTests::commandRunTest#1")
       if (pending) {
         log.clear()
-        log.error(" Pending test passed. Mark as passing to remove this failure.")
+        log.error(
+          " Pending test passed. Mark as passing to remove this failure.",
+          "ScriptedTests::commandRunTest#1"
+        )
         Some(label)
       } else None
     }
@@ -705,16 +713,18 @@ private[sbt] final class ListTests(
     val groupName = group.getName
     val allTests = IO.listFiles(group, filter)
     if (allTests.isEmpty) {
-      log.warn(s"No tests in test group $groupName")
+      log.warn(s"No tests in test group $groupName", "ScriptedTests::ListsTests::listTests/1#1")
       Set.empty
     } else {
       val (included, skipped) =
         allTests.toList.partition(test => accept(ScriptedTest(groupName, test.getName)))
       if (included.isEmpty)
-        log.warn(s"Test group $groupName skipped.")
+        log.warn(s"Test group $groupName skipped.", "ScriptedTests::ListsTests::listTests/1#2")
       else if (skipped.nonEmpty) {
-        log.warn(s"Tests skipped in group $groupName:")
-        skipped.foreach(testName => log.warn(s" ${testName.getName}"))
+        log.warn(s"Tests skipped in group $groupName:", "ScriptedTests::ListsTests::listTests/1#3")
+        skipped.foreach(
+          testName => log.warn(s" ${testName.getName}", "ScriptedTests::ListsTests::listTests/1#4")
+        )
       }
       Set(included.map(_.getName): _*)
     }
@@ -741,7 +751,7 @@ private[sbt] class TestConsoleLogger extends AbstractLogger {
     out.println(message)
     // out.flush()
   }
-  def log(level: Level.Value, message: => String): Unit = {
+  def log(level: Level.Value, message: => String, @nowarn originId: String): Unit = {
     out.println(s"[$level] $message")
     // out.flush()
   }

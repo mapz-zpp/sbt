@@ -337,7 +337,7 @@ object BasicCommands {
         def argsStr = args mkString ", "
         def cpStr = cp mkString File.pathSeparator
         def fromCpStr = if (cp.isEmpty) "" else s" from $cpStr"
-        state.log info s"Applying State transformations $argsStr$fromCpStr"
+        state.log.info(s"Applying State transformations $argsStr$fromCpStr", "")
         val loader =
           if (cp.isEmpty) parentLoader else toLoader(cp.map(f => Paths.get(f)), parentLoader)
         val loaded =
@@ -465,7 +465,10 @@ object BasicCommands {
           // this means that all commands from all files are loaded, parsed, & inserted before any are executed
           readLines(from).toList ::: s
         else {
-          s.log.error("Command file(s) not readable: \n\t" + notFound.mkString("\n\t"))
+          s.log.error(
+            "Command file(s) not readable: \n\t" + notFound.mkString("\n\t"),
+            "BasicCommands::doRead/1+1"
+          )
           s
         }
     }

@@ -15,8 +15,9 @@ implicit lazy val StringEventFormat: JsonFormat[sbt.internal.util.StringEvent] =
       val message = unbuilder.readField[String]("message")
       val channelName = unbuilder.readField[Option[String]]("channelName")
       val execId = unbuilder.readField[Option[String]]("execId")
+      val originId = unbuilder.readField[Option[String]]("originId")
       unbuilder.endObject()
-      sbt.internal.util.StringEvent(level, message, channelName, execId)
+      sbt.internal.util.StringEvent(level, message, channelName, execId, originId)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -27,6 +28,7 @@ implicit lazy val StringEventFormat: JsonFormat[sbt.internal.util.StringEvent] =
     builder.addField("message", obj.message)
     builder.addField("channelName", obj.channelName)
     builder.addField("execId", obj.execId)
+    builder.addField("originId", obj.originId)
     builder.endObject()
   }
 }

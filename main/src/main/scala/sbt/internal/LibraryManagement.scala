@@ -55,16 +55,16 @@ private[sbt] object LibraryManagement {
     def resolve: UpdateReport = {
       import sbt.util.ShowLines._
 
-      log.debug(s"Updating $label...")
+      log.debug(s"Updating $label...", "")
       val reportOrUnresolved: Either[UnresolvedWarning, UpdateReport] =
         lm.update(module, updateConfig, uwConfig, log)
       val report = reportOrUnresolved match {
         case Right(report0) => report0
         case Left(unresolvedWarning) =>
-          unresolvedWarning.lines.foreach(log.warn(_))
+          unresolvedWarning.lines.foreach(log.warn(_, ""))
           throw unresolvedWarning.resolveException
       }
-      log.debug(s"Done updating $label")
+      log.debug(s"Done updating $label", "")
       val report1 = transform(report)
 
       // Warn of any eviction and compatibility warnings
@@ -90,10 +90,10 @@ private[sbt] object LibraryManagement {
       if (errorLines.nonEmpty) sys.error((errorLines ++ extraLines).mkString(EOL))
       else {
         if (evictionError.incompatibleEvictions.isEmpty) ()
-        else evictionError.lines.foreach(log.log(evictionLevel, _: String))
+        else evictionError.lines.foreach(log.log(evictionLevel, _: String, ""))
 
         if (evictionError.assumedIncompatibleEvictions.isEmpty) ()
-        else evictionError.toAssumedLines.foreach(log.log(assumedEvictionErrorLevel, _: String))
+        else evictionError.toAssumedLines.foreach(log.log(assumedEvictionErrorLevel, _: String, ""))
       }
       CompatibilityWarning.run(compatWarning, module, mavenStyle, log)
       val report2 = transformDetails(report1, includeCallers, includeDetails)
@@ -130,7 +130,7 @@ private[sbt] object LibraryManagement {
         val cachedResolve = Tracked.lastOutput[UpdateInputs, UpdateReport](cache) {
           case (_, Some(out)) if upToDate(inChanged, out) => markAsCached(out)
           case pair =>
-            log.debug(s"""not up to date. inChanged = $inChanged, force = $force""")
+            log.debug(s"""not up to date. inChanged = $inChanged, force = $force""", "")
             resolve
         }
         import scala.util.control.Exception.catching
@@ -138,9 +138,9 @@ private[sbt] object LibraryManagement {
           .withApply { t =>
             val resolvedAgain = resolve
             val culprit = t.getClass.getSimpleName
-            log.warn(s"Update task caching failed due to $culprit.")
-            log.warn("Report the following output to sbt:")
-            resolvedAgain.toString.linesIterator.foreach(log.warn(_))
+            log.warn(s"Update task caching failed due to $culprit.", "")
+            log.warn("Report the following output to sbt:", "")
+            resolvedAgain.toString.linesIterator.foreach(log.warn(_, ""))
             log.trace(t)
             resolvedAgain
           }
@@ -166,7 +166,7 @@ private[sbt] object LibraryManagement {
     // https://github.com/sbt/sbt/issues/5292 warn the user that the file is missing since this indicates
     // that UpdateReport was persisted but Coursier cache was not.
     if (!exists) {
-      log.warn(s"${file.getName} no longer exists at $file")
+      log.warn(s"${file.getName} no longer exists at $file", "")
     }
     // coursier doesn't populate stamps
     val timeStampIsSame = stamps

@@ -34,7 +34,8 @@ class MultiLogger(delegates: List[AbstractLogger]) extends BasicLogger {
   }
 
   def trace(t: => Throwable): Unit = dispatch(new Trace(t))
-  def log(level: Level.Value, message: => String): Unit = dispatch(new Log(level, message))
+  def log(level: Level.Value, message: => String, @nowarn originId: String): Unit =
+    dispatch(new Log(level, message))
   def success(message: => String): Unit = dispatch(new Success(message))
   def logAll(events: Seq[LogEvent]): Unit = delegates.foreach(_.logAll(events))
 

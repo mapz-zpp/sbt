@@ -1315,41 +1315,41 @@ def runNpm(command: String, base: File, log: sbt.internal.util.ManagedLogger) = 
   }
 }
 
-lazy val vscodePlugin = (project in file("vscode-sbt-scala"))
-  .settings(
-    bspEnabled := false,
-    crossPaths := false,
-    crossScalaVersions := Seq(baseScalaVersion),
-    publish / skip := true,
-    Compile / compile := {
-      val _ = update.value
-      runNpm("run compile", baseDirectory.value, streams.value.log)
-      sbt.internal.inc.Analysis.empty
-    },
-    update := {
-      val old = update.value
-      val t = target.value / "updated"
-      val base = baseDirectory.value
-      val log = streams.value.log
-      if (t.exists) ()
-      else {
-        runNpm("install", base, log)
-        IO.touch(t)
-      }
-      old
-    },
-    cleanFiles ++= {
-      val base = baseDirectory.value
-      Vector(
-        target.value / "updated",
-        base / "node_modules",
-        base / "client" / "node_modules",
-        base / "client" / "server",
-        base / "client" / "out",
-        base / "server" / "node_modules"
-      ) filter { _.exists }
-    }
-  )
+//lazy val vscodePlugin = (project in file("vscode-sbt-scala"))
+//  .settings(
+//    bspEnabled := false,
+//    crossPaths := false,
+//    crossScalaVersions := Seq(baseScalaVersion),
+//    publish / skip := true,
+//    Compile / compile := {
+//      val _ = update.value
+//      runNpm("run compile", baseDirectory.value, streams.value.log)
+//      sbt.internal.inc.Analysis.empty
+//    },
+//    update := {
+//      val old = update.value
+//      val t = target.value / "updated"
+//      val base = baseDirectory.value
+//      val log = streams.value.log
+//      if (t.exists) ()
+//      else {
+//        runNpm("install", base, log)
+//        IO.touch(t)
+//      }
+//      old
+//    },
+//    cleanFiles ++= {
+//      val base = baseDirectory.value
+//      Vector(
+//        target.value / "updated",
+//        base / "node_modules",
+//        base / "client" / "node_modules",
+//        base / "client" / "server",
+//        base / "client" / "out",
+//        base / "server" / "node_modules"
+//      ) filter { _.exists }
+//    }
+//  )
 
 def scriptedTask(launch: Boolean): Def.Initialize[InputTask[Unit]] = Def.inputTask {
   val _ = publishLocalBinAll.value
@@ -1430,7 +1430,7 @@ def otherRootSettings =
         case _          => Nil
       }),
     publishLocalBinAll := {
-      val _ = (Compile / publishLocalBin).all(scriptedProjects).value
+//      val _ = (Compile / publishLocalBin).all(scriptedProjects).value
     },
   ) ++ inConfig(Scripted.RepoOverrideTest)(
     Seq(
@@ -1464,7 +1464,7 @@ lazy val docProjects: ScopeFilter = ScopeFilter(
   inConfigurations(Compile)
 )
 lazy val javafmtOnCompile = taskKey[Unit]("Formats java sources before compile")
-lazy val scriptedProjects = ScopeFilter(inAnyProject -- inProjects(vscodePlugin))
+//lazy val scriptedProjects = ScopeFilter(inAnyProject -- inProjects(vscodePlugin))
 
 def customCommands: Seq[Setting[_]] = Seq(
   commands += Command.command("setupBuildScala212") { state =>

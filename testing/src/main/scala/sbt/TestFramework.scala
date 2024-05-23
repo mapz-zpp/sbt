@@ -63,7 +63,8 @@ final class TestFramework(val implClassNames: String*) extends Serializable {
            |
            |    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary
            |or
-           |    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat""".stripMargin
+           |    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat""".stripMargin,
+        "TestFramework::createFramework::logError/1"
       )
       None
     }
@@ -82,7 +83,10 @@ final class TestFramework(val implClassNames: String*) extends Serializable {
             logError(e)
             throw e
           case _: ClassNotFoundException =>
-            log.debug("Framework implementation '" + head + "' not present.")
+            log.debug(
+              "Framework implementation '" + head + "' not present.",
+              "TestFramework::createFramework#1"
+            )
             createFramework(loader, log, tail)
         }
       case Nil =>
@@ -128,7 +132,7 @@ final class TestRunner(
       taskDef.explicitlySpecified,
       taskDef.selectors
     )
-    log.debug("Running " + taskDef)
+    log.debug("Running " + taskDef, "TestFramework::TestRunner::run#1")
     val name = testDefinition.name
 
     def runTest() = {
@@ -192,7 +196,9 @@ object TestFramework {
     it.foreach(
       i =>
         try f(i)
-        catch { case NonFatal(e) => log.trace(e); log.error(e.toString) }
+        catch {
+          case NonFatal(e) => log.trace(e); log.error(e.toString, "TestFramework::safeForeach")
+        }
     )
 
   private[sbt] def hashCode(f: Fingerprint): Int = f match {

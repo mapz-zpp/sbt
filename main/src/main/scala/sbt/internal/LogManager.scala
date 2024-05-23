@@ -335,6 +335,7 @@ object LogManager {
       override val ansiCodesSupported = ITerminal.isAnsiSupported
       override def trace(t: => Throwable) = slog.trace(t)
       override def success(message: => String) = slog.success(message)
-      override def log(level: Level.Value, message: => String) = slog.log(level, message)
+      override def log(level: Level.Value, message: => String, originId: String) =
+        slog.log(level, message, originId)
     }
 }

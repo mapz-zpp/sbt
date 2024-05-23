@@ -129,7 +129,7 @@ final class NetworkChannel(
     def appendExec(
         commandLine: String,
         execId: Option[String],
-        originId: Option[String] = None
+        originId: Option[String]
     ): Boolean = {
       Files.writeString(
         Paths.get("/home/mavia/sbt-log"),
@@ -202,7 +202,7 @@ final class NetworkChannel(
                 logMessage(
                   "error",
                   s"server protocol $x1 is no longer supported",
-                  Some("run:error")
+                  Some("NetworkChannel/run/error")
                 )
               }
             }
@@ -268,7 +268,7 @@ final class NetworkChannel(
           val msg =
             s"got invalid chunk from client (${new String(chunk.toArray, "UTF-8")}): $errorDesc"
           log.error(msg)
-          logMessage("error", msg, Option.empty)
+          logMessage("error", msg, Some("NetworkChannel/error"))
       }
     }
   }
@@ -352,7 +352,7 @@ final class NetworkChannel(
       case entry: ExecStatusEvent =>
         getPendingRequest(entry.execId) match {
           case Some(request) =>
-            logMessage("debug", s"${entry.status} ${request.method}", None)
+            logMessage("debug", s"${entry.status} ${request.method}", entry.originId)
           case None =>
             log.debug(
               s"unmatched ${entry.status} event for requestId ${entry.execId}: ${entry.message}"
@@ -560,7 +560,7 @@ final class NetworkChannel(
                   Some(name),
                   Some(runningExecId),
                   Vector(),
-                  None,
+                  None
                 ),
                 execId
               )

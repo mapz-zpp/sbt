@@ -48,7 +48,7 @@ object CommandUtil {
   def withAttribute[T](s: State, key: AttributeKey[T], ifMissing: String)(f: T => State): State =
     s get key match {
       case None =>
-        s.log.error(ifMissing); s.fail
+        s.log.error(ifMissing, "CommandUtil::withAttribute/3+1"); s.fail
       case Some(nav) => f(nav)
     }
 

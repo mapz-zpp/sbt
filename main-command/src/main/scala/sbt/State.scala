@@ -65,6 +65,9 @@ final case class State(
       case Some(x) => x.source
       case _       => None
     }
+
+  def originId: Option[String] =
+    currentCommand.flatMap(_.originId)
 }
 
 /**
@@ -281,7 +284,7 @@ object State {
   implicit class StateOpsImpl(val s: State) extends AnyVal with StateOps {
     def process(f: (Exec, State) => State): State = {
       def runCmd(cmd: Exec, remainingCommands: List[Exec]) = {
-        log.debug(s"> $cmd")
+        log.debug(s"> $cmd", cmd.originId.getOrElse("State::process::runCmd/2"))
         val s1 = s.copy(
           remainingCommands = remainingCommands,
           currentCommand = Some(cmd),
@@ -445,7 +448,7 @@ object State {
   private[this] def handleException(t: Throwable, s: State, log: Logger): State = {
     ExceptionCategory(t) match {
       case AlreadyHandled => ()
-      case m: MessageOnly => log.error(m.message)
+      case m: MessageOnly => log.error(m.message, "State::handleException-MessageOnly/3")
       case f: Full        => logFullException(f.exception, log)
     }
     s.fail
@@ -453,8 +456,8 @@ object State {
   private[sbt] def logFullException(e: Throwable, log: Logger): Unit = {
     e.printStackTrace(System.err)
     log.trace(e)
-    log.error(ErrorHandling reducedToString e)
-    log.error("Use 'last' for the full log.")
+    log.error(ErrorHandling reducedToString e, "State::logFullException/2#1")
+    log.error("Use 'last' for the full log.", "State::logFullException/2#2")
   }
   private[sbt] def getBoolean(s: State, key: AttributeKey[Boolean], default: Boolean): Boolean =
     s.get(key) getOrElse default

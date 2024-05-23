@@ -70,7 +70,10 @@ object LintUnused {
     val excludeKeys = (Global / lintExcludeFilter).value
     val result = lintUnused(state, includeKeys, excludeKeys)
     if (result.isEmpty) log.success("ok")
-    else lintResultLines(result) foreach { log.warn(_) }
+    else
+      lintResultLines(result) foreach {
+        log.warn(_, state.originId.getOrElse("LintUnused::LintUnusedTask"))
+      }
   }
 
   // function version of the lintUnused, based on just state
@@ -81,7 +84,9 @@ object LintUnused {
     val excludeKeys = extracted.get((Global / lintExcludeFilter))
     if (extracted.get((Global / lintUnusedKeysOnLoad))) {
       val result = lintUnused(s, includeKeys, excludeKeys)
-      lintResultLines(result) foreach { log.warn(_) }
+      lintResultLines(result) foreach {
+        log.warn(_, s.originId.getOrElse("LintUnused::LintUnusedTask"))
+      }
     }
     s
   }
