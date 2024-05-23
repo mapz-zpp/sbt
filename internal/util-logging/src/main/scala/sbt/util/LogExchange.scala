@@ -34,7 +34,7 @@ sealed abstract class LogExchange {
   def logger(name: String): ManagedLogger = logger(name, None, None)
   @deprecated("Use LoggerContext to create loggers", "1.4.0")
   def logger(name: String, channelName: Option[String], execId: Option[String]): ManagedLogger =
-    LoggerContext.globalContext.logger(name, channelName, execId)
+    LoggerContext.globalContext.logger(name, channelName, execId, None)
   @deprecated("Use LoggerContext to unbind appenders", "1.4.0")
   def unbindLoggerAppenders(loggerName: String): Unit = {
     LoggerContext.globalContext.clearAppenders(loggerName)

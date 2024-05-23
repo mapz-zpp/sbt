@@ -53,7 +53,7 @@ object ScriptedRunnerImpl {
   private[sbt] val generateId: AtomicInteger = new AtomicInteger
   private[sbt] def newLogger(context: LoggerContext): ManagedLogger = {
     val loggerName = "scripted-" + generateId.incrementAndGet
-    context.logger(loggerName, None, None)
+    context.logger(loggerName, None, None, None)
   }
 }
 

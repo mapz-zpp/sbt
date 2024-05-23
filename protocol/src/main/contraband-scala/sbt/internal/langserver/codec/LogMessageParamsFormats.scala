@@ -13,8 +13,9 @@ implicit lazy val LogMessageParamsFormat: JsonFormat[sbt.internal.langserver.Log
       unbuilder.beginObject(__js)
       val `type` = unbuilder.readField[Long]("type")
       val message = unbuilder.readField[String]("message")
+      val originId = unbuilder.readField[Option[String]]("originId")
       unbuilder.endObject()
-      sbt.internal.langserver.LogMessageParams(`type`, message)
+      sbt.internal.langserver.LogMessageParams(`type`, message, originId)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -23,6 +24,7 @@ implicit lazy val LogMessageParamsFormat: JsonFormat[sbt.internal.langserver.Log
     builder.beginObject()
     builder.addField("type", obj.`type`)
     builder.addField("message", obj.message)
+    builder.addField("originId", obj.originId)
     builder.endObject()
   }
 }

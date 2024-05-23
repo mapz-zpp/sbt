@@ -9,9 +9,10 @@
 package sbt
 package internal
 
+import sbt.Exec
+
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
-
 import sbt.internal.ui.{ UITask, UserThread }
 import sbt.internal.util.Terminal
 import sbt.protocol.EventMessage
@@ -63,7 +64,9 @@ abstract class CommandChannel {
       }
     }
   }
-  def poll: Option[Exec] = Option(commandQueue.poll)
+  def poll: Option[Exec] = {
+    Option(commandQueue.poll)
+  }
 
   def prompt(e: ConsolePromptEvent): Unit = userThread.onConsolePromptEvent(e)
   def unprompt(e: ConsoleUnpromptEvent): Unit = userThread.onConsoleUnpromptEvent(e)
@@ -81,7 +84,14 @@ abstract class CommandChannel {
   private[sbt] final def logLevel: Level.Value = level.get
   private[this] def setLevel(value: Level.Value, cmd: String): Boolean = {
     level.set(value)
-    append(Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name))))
+    append(
+      Exec(
+        cmd,
+        Some(Exec.newExecId),
+        Some(CommandSource(name)),
+        Option(commandQueue.peek).flatMap(_.originId)
+      )
+    )
   }
   private[sbt] def onCommand: String => Boolean = {
     case "error" => setLevel(Level.Error, "error")
@@ -89,8 +99,16 @@ abstract class CommandChannel {
     case "info"  => setLevel(Level.Info, "info")
     case "warn"  => setLevel(Level.Warn, "warn")
     case cmd =>
-      if (cmd.nonEmpty) append(Exec(cmd, Some(Exec.newExecId), Some(CommandSource(name))))
-      else false
+      if (cmd.nonEmpty) {
+        append(
+          Exec(
+            cmd,
+            Some(Exec.newExecId),
+            Some(CommandSource(name)),
+            Option(commandQueue.peek).flatMap(_.originId)
+          )
+        )
+      } else false
   }
   private[sbt] def onFastTrackTask: String => Boolean = { s: String =>
     fastTrack.synchronized(fastTrack.forEach { q =>

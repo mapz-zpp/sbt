@@ -5,6 +5,7 @@ type Exec {
   commandLine: String!
   execId: String @since("0.0.1")
   source: sbt.CommandSource
+  originId: String
 
   #xcompanion def newExecId: String = java.util.UUID.randomUUID.toString
 }

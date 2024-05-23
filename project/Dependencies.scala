@@ -12,10 +12,10 @@ object Dependencies {
     sys.env.get("BUILD_VERSION") orElse sys.props.get("sbt.build.version")
 
   // sbt modules
-  private val ioVersion = nightlyVersion.getOrElse("1.9.7")
+  private val ioVersion = nightlyVersion.getOrElse("1.10.0")
   private val lmVersion =
-    sys.props.get("sbt.build.lm.version").orElse(nightlyVersion).getOrElse("1.9.3")
-  val zincVersion = nightlyVersion.getOrElse("1.10.0-M2")
+    sys.props.get("sbt.build.lm.version").orElse(nightlyVersion).getOrElse("1.10.0")
+  val zincVersion = nightlyVersion.getOrElse("1.10.0")
 
   private val sbtIO = "org.scala-sbt" %% "io" % ioVersion
 
@@ -93,7 +93,7 @@ object Dependencies {
   val jline3JNA = "org.jline" % "jline-terminal-jna" % jline3Version
   val jline3Reader = "org.jline" % "jline-reader" % jline3Version
   val jline3Builtins = "org.jline" % "jline-builtins" % jline3Version
-  val jansi = "org.fusesource.jansi" % "jansi" % "2.4.0"
+  val jansi = "org.fusesource.jansi" % "jansi" % "2.4.1"
   val scalatest = "org.scalatest" %% "scalatest" % "3.2.10"
   val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.4"
   val junit = "junit" % "junit" % "4.13.1"

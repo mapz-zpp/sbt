@@ -191,7 +191,8 @@ object LogManager {
     val loggerName: String = s"${task.key.label}-${generateId.incrementAndGet}"
     val channelName: Option[String] = execOpt flatMap (_.source map (_.channelName))
     val execId: Option[String] = execOpt flatMap { _.execId }
-    val log = context.logger(loggerName, channelName, execId)
+    val originId: Option[String] = state.originId
+    val log = context.logger(loggerName, channelName, execId, originId)
     val scope = task.scope
     val screenLevel = getOr(logLevel.key, data, scope, state, Level.Info)
     val backingLevel = getOr(persistLogLevel.key, data, scope, state, Level.Debug)
@@ -266,7 +267,7 @@ object LogManager {
     val loggerName: String = s"bg-${task.key.label}-${generateId.incrementAndGet}"
     val channelName: Option[String] = execOpt flatMap (_.source map (_.channelName))
     // val execId: Option[String] = execOpt flatMap { _.execId }
-    val log = context.logger(loggerName, channelName, None)
+    val log = context.logger(loggerName, channelName, None, state.originId)
     context.clearAppenders(loggerName)
     val consoleOpt = consoleLocally(state, console) map {
       case a: Appender =>
@@ -318,7 +319,7 @@ object LogManager {
   // This is the default implementation for the relay appender
   val defaultRelay: Unit => ConsoleAppender = _ => defaultRelayImpl
 
-  private[this] lazy val defaultRelayImpl: ConsoleAppender = new RelayAppender("Relay0")
+  private[this] lazy val defaultRelayImpl = new RelayAppender("Relay0")
 
   private[sbt] def settingsLogger(state: State): Def.Setting[_] =
     // strict to avoid retaining a reference to `state`

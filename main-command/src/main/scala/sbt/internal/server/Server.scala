@@ -97,7 +97,8 @@ private[sbt] object Server {
                 case null =>
                 case s    => s.close()
               }
-              log.info(s"sbt server started at ${connection.shortName}")
+              log.info(s"sbt server - TM0 started at ${connection.shortName}")
+
               writePortfile()
               if (connection.bspEnabled) {
                 log.debug("Writing bsp connection file")
@@ -159,7 +160,8 @@ private[sbt] object Server {
       }
 
       override def shutdown(): Unit = {
-        log.info("shutting down sbt server")
+        log.info("HELLLLLLLO")
+        log.info("HELLLLLO shutting down sbt server")
         if (portfile.exists) {
           IO.delete(portfile)
         }

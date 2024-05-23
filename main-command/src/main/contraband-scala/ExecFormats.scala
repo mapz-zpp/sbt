@@ -13,8 +13,9 @@ implicit lazy val ExecFormat: JsonFormat[sbt.Exec] = new JsonFormat[sbt.Exec] {
       val commandLine = unbuilder.readField[String]("commandLine")
       val execId = unbuilder.readField[Option[String]]("execId")
       val source = unbuilder.readField[Option[sbt.CommandSource]]("source")
+      val originId = unbuilder.readField[Option[String]]("originId")
       unbuilder.endObject()
-      sbt.Exec(commandLine, execId, source)
+      sbt.Exec(commandLine, execId, source, originId)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -24,6 +25,7 @@ implicit lazy val ExecFormat: JsonFormat[sbt.Exec] = new JsonFormat[sbt.Exec] {
     builder.addField("commandLine", obj.commandLine)
     builder.addField("execId", obj.execId)
     builder.addField("source", obj.source)
+    builder.addField("originId", obj.originId)
     builder.endObject()
   }
 }
