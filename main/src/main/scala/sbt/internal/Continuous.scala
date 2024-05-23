@@ -271,7 +271,7 @@ private[sbt] object Continuous extends DeprecatedContinuous {
   ): Callbacks = {
     implicit val extracted: Extracted = Project.extract(s)
     implicit val logger: Logger =
-      context.logger(channel.name + "-watch", None, None)
+      context.logger(channel.name + "-watch", None, None, s.originId)
     validateCommands(s, commands)
     val configs = getAllConfigs(s, commands, dynamicInputs)
     val appender = ConsoleAppender(channel.name + "-watch", channel.terminal)

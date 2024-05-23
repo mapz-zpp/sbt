@@ -22,7 +22,6 @@ import xsbti.Severity
 import xsbti.compile.CompileResult
 import xsbti.compile.Inputs
 
-import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.util.control.NonFatal
 
 object BspCompileTask {
@@ -94,11 +93,6 @@ case class BspCompileTask private (
     val data = Converter.toJsonUnsafe(CompileTask(targetId))
     val params =
       TaskStartParams(id, startTimeMillis, message, "compile-task", data, originId.getOrElse("???"))
-    Files.writeString(
-      Paths.get("/home/mavia/sbt-log"),
-      s"[BspCompileTask::notifyStart] data=$data params=$params\n",
-      StandardOpenOption.APPEND
-    )
     exchange.notifyEvent("build/taskStart", params)
   }
 

@@ -18,7 +18,6 @@ import sbt.internal.util.Terminal
 import sbt.protocol.EventMessage
 import sbt.util.Level
 
-import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.collection.JavaConverters._
 
 /**
@@ -60,25 +59,13 @@ abstract class CommandChannel {
   final def append(exec: Exec): Boolean = {
     registered.synchronized {
       exec.commandLine.nonEmpty && {
-        Files.writeString(
-          Paths.get("/home/mavia/sbt-log"),
-          s"[append] exec=$exec; isEmpty=${registered.isEmpty}; queue=$commandQueue\n",
-          StandardOpenOption.APPEND
-        )
         if (registered.isEmpty) commandQueue.add(exec)
         else registered.asScala.forall(_.add(exec))
       }
     }
   }
   def poll: Option[Exec] = {
-    val polledValue = commandQueue.poll
-    val valString = polledValue.toString
-    Files.writeString(
-      Paths.get("/home/mavia/sbt-log"),
-      s"\n[poll] $valString",
-      StandardOpenOption.APPEND
-    )
-    Option(polledValue)
+    Option(commandQueue.poll)
   }
 
   def prompt(e: ConsolePromptEvent): Unit = userThread.onConsolePromptEvent(e)
@@ -113,31 +100,18 @@ abstract class CommandChannel {
     case "warn"  => setLevel(Level.Warn, "warn")
     case cmd =>
       if (cmd.nonEmpty) {
-        // not here
-        val queueString = commandQueue.toString
-        val newExec = Exec(
-          cmd,
-          Some(Exec.newExecId),
-          Some(CommandSource(name)),
-          Option(commandQueue.peek).flatMap(_.originId)
-        )
-        Files.writeString(
-          Paths.get("/home/mavia/sbt-log"),
-          s"[onCommand] cmd=$cmd; queue=$queueString; exec=$newExec\n",
-          StandardOpenOption.APPEND
-        )
         append(
-          newExec
+          Exec(
+            cmd,
+            Some(Exec.newExecId),
+            Some(CommandSource(name)),
+            Option(commandQueue.peek).flatMap(_.originId)
+          )
         )
       } else false
   }
   private[sbt] def onFastTrackTask: String => Boolean = { s: String =>
     fastTrack.synchronized(fastTrack.forEach { q =>
-      Files.writeString(
-        Paths.get("/home/mavia/sbt-log"),
-        s"[onFastTrack] q=$q; s=$s\n; this=$this",
-        StandardOpenOption.APPEND
-      )
       q.add(new FastTrackTask(this, s))
       ()
     })

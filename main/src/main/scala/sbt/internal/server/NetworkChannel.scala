@@ -46,8 +46,6 @@ import sjsonnew._
 import sjsonnew.support.scalajson.unsafe.{ CompactPrinter, Converter }
 import sbt.internal.util.ProgressState
 
-import java.nio.file.{ Files, Paths, StandardOpenOption }
-
 final class NetworkChannel(
     val name: String,
     connection: Socket,
@@ -118,11 +116,6 @@ final class NetworkChannel(
       self.respondError(code, message, execId)
 
     def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit = {
-      Files.writeString(
-        Paths.get("/home/mavia/sbt-log"),
-        s"\n[jsonRpcNotify] method=$method, params=$params",
-        StandardOpenOption.APPEND
-      )
       self.jsonRpcNotify(method, params)
     }
 
@@ -131,23 +124,10 @@ final class NetworkChannel(
         execId: Option[String],
         originId: Option[String] = None
     ): Boolean = {
-      Files.writeString(
-        Paths.get("/home/mavia/sbt-log"),
-        s"[appendExec/3] execId=$execId, originId=$originId\n",
-        StandardOpenOption.APPEND
-      )
       self.append(Exec(commandLine, execId, Some(CommandSource(name)), originId))
     }
 
     def appendExec(exec: Exec): Boolean = {
-      val execId = exec.execId
-      val originId = exec.originId
-
-      Files.writeString(
-        Paths.get("/home/mavia/sbt-log"),
-        s"[appendExec/1] execId=$execId, originId=$originId\n",
-        StandardOpenOption.APPEND
-      )
       self.append(exec)
     }
 

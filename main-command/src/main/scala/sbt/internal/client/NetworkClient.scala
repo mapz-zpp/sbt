@@ -1039,7 +1039,7 @@ object NetworkClient {
           message: => String,
           originId: Option[String]
       ): Unit =
-        appender.appendLog(level, message)
+        appender.appendLog(level, message, originId)
       override def success(msg: String): Unit = appender.success(msg)
     }
   }

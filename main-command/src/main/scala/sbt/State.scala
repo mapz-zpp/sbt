@@ -65,6 +65,9 @@ final case class State(
       case Some(x) => x.source
       case _       => None
     }
+
+  def originId: Option[String] =
+    currentCommand.flatMap(_.originId)
 }
 
 /**

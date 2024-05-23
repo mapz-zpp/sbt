@@ -14,8 +14,8 @@ import scala.reflect.runtime.universe.TypeTag
 import sjsonnew.JsonFormat
 
 private[sbt] trait MiniLogger {
-  def log[T](level: Level.Value, message: ObjectEvent[T]): Unit
-  def log(level: Level.Value, message: => String): Unit
+  def log[T](level: Level.Value, message: ObjectEvent[T], originId: Option[String]): Unit
+  def log(level: Level.Value, message: => String, originId: Option[String]): Unit
 }
 
 /**
@@ -25,6 +25,7 @@ class ManagedLogger(
     val name: String,
     val channelName: Option[String],
     val execId: Option[String],
+    val originId: Option[String],
     xlogger: MiniLogger,
     terminal: Option[Terminal],
     private[sbt] val context: LoggerContext,
@@ -33,13 +34,14 @@ class ManagedLogger(
       name: String,
       channelName: Option[String],
       execId: Option[String],
+      originId: Option[String],
       xlogger: MiniLogger
   ) =
-    this(name, channelName, execId, xlogger, None, LoggerContext.globalContext)
+    this(name, channelName, execId, originId, xlogger, None, LoggerContext.globalContext)
   override def trace(t: => Throwable): Unit =
     logEvent(Level.Error, TraceEvent("Error", t, channelName, execId))
   override def log(level: Level.Value, message: => String): Unit =
-    xlogger.log(level, message)
+    xlogger.log(level, message, originId)
 
   // send special event for success since it's not a real log level
   override def success(message: => String): Unit = {
@@ -90,7 +92,7 @@ class ManagedLogger(
     val v: A = event
     // println("logEvent " + tag.key)
     val entry: ObjectEvent[A] = ObjectEvent(level, v, channelName, execId, tag.key)
-    xlogger.log(level, entry)
+    xlogger.log(level, entry, originId)
   }
 
   @deprecated("No longer used.", "1.0.0")

@@ -97,7 +97,7 @@ private[sbt] object Server {
                 case null =>
                 case s    => s.close()
               }
-              log.info(s"sbt server - TM9 started at ${connection.shortName}")
+              log.info(s"sbt server - TM0 started at ${connection.shortName}")
 
               writePortfile()
               if (connection.bspEnabled) {

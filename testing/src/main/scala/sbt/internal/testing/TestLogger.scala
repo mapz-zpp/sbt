@@ -52,7 +52,7 @@ object TestLogger {
       val per = perTest(tdef)
       val l0 = per.log
       val buffs = as.map(a => BufferedAppender(generateBufferName, a)).toList
-      val newLog = context.logger(generateName, l0.channelName, l0.execId)
+      val newLog = context.logger(generateName, l0.channelName, l0.execId, l0.originId)
       context.clearAppenders(newLog.name)
       buffs.foreach { b =>
         context.addAppender(newLog.name, b -> level)
