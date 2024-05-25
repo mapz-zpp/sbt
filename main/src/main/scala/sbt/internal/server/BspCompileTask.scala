@@ -92,7 +92,7 @@ case class BspCompileTask private (
     val message = s"Compiling $targetName"
     val data = Converter.toJsonUnsafe(CompileTask(targetId))
     val params =
-      TaskStartParams(id, startTimeMillis, message, "compile-task", data, originId.getOrElse("???"))
+      TaskStartParams(id, startTimeMillis, message, "compile-task", data, originId.orNull)
     exchange.notifyEvent("build/taskStart", params)
   }
 
@@ -110,11 +110,12 @@ case class BspCompileTask private (
     val report = compileReport(problems, targetId, elapsedTimeMillis, isNoOp)
     val params = TaskFinishParams(
       id,
+      originId.orNull,
       endTimeMillis,
       s"Compiled $targetName",
       StatusCode.Success,
       "compile-report",
-      Converter.toJsonUnsafe(report)
+      Converter.toJsonUnsafe(report),
     )
     exchange.notifyEvent("build/taskFinish", params)
   }
@@ -125,6 +126,7 @@ case class BspCompileTask private (
     val currentMillis = System.currentTimeMillis()
     val params = TaskProgressParams(
       id,
+      originId,
       Some(currentMillis),
       Some(message),
       Some(total.toLong),
@@ -143,6 +145,7 @@ case class BspCompileTask private (
     val report = compileReport(problems, targetId, elapsedTimeMillis, None)
     val params = TaskFinishParams(
       id,
+      originId.orNull,
       endTimeMillis,
       s"Compiled $targetName",
       StatusCode.Error,

@@ -2368,6 +2368,7 @@ object Defaults extends BuildCommon {
   }
   def compileIncrementalTask = Def.task {
     val s = streams.value
+    val st = state.value
     val ci = (compile / compileInputs).value
     val ping = earlyOutputPing.value
     val reporter = (compile / bspReporter).value
@@ -2377,7 +2378,7 @@ object Defaults extends BuildCommon {
         thisProjectRef.value,
         configuration.value,
         ci,
-        Some("Default.scala")
+        st.originId
       ) { task =>
         // TODO - Should readAnalysis + saveAnalysis be scoped by the compile task too?
         compileIncrementalTaskImpl(task, s, ci, ping, reporter)
