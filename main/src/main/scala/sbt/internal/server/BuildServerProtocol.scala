@@ -34,7 +34,6 @@ import sjsonnew.support.scalajson.unsafe.{ CompactPrinter, Converter, Parser => 
 import xsbti.CompileFailed
 
 import java.io.File
-import java.nio.file.{ Files, Paths }
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
 
@@ -431,7 +430,8 @@ object BuildServerProtocol {
           case r: JsonRpcRequestMessage if r.method == Method.Test =>
             val task = bspBuildTargetTest.key
             val paramStr = CompactPrinter(json(r))
-            val _ = callback.appendExec(s"$task $paramStr", Some(r.id))
+            val param = Converter.fromJson[TestParams](json(r)).get
+            val _ = callback.appendExec(s"$task $paramStr", Some(r.id), param.originId)
 
           case r if r.method == Method.Run =>
             val paramJson = json(r)
@@ -447,7 +447,6 @@ object BuildServerProtocol {
             val config = configurationMap(scope.config.toOption.get).id
             val task = bspBuildTargetRun.key
             val paramStr = CompactPrinter(paramJson)
-            Files.writeString(Paths.get("/home/mavia/sbt-log"), s"$paramStr\n")
             val _ = callback.appendExec(
               s"$project / $config / $task $paramStr",
               Some(r.id),

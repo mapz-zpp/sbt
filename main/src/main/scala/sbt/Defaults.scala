@@ -1295,7 +1295,12 @@ object Defaults extends BuildCommon {
       testFrameworks.value.flatMap(f => f.create(loader, log).map(x => (f, x)).toIterable).toMap
     },
     bspTestTask := BspTestTask
-      .start(bspTargetIdentifier.value, thisProjectRef.value, configuration.value),
+      .start(
+        bspTargetIdentifier.value,
+        thisProjectRef.value,
+        configuration.value,
+        state.value.originId
+      ),
     definedTests := detectTests.value,
     definedTestNames := (definedTests map (_.map(_.name).distinct) storeAs definedTestNames triggeredBy compile).value,
     testQuick / testFilter := testQuickFilter.value,
