@@ -332,12 +332,14 @@ object BuildServerProtocol {
       val logger = streams.value.log
       val meta = isMetaBuild.value
       val spms = sourcePositionMappers.value
+      val st = state.value
       if (bspEnabled.value) {
         new BuildServerReporterImpl(
           targetId,
           bspCompileStateInstance,
           converter,
           Defaults.foldMappers(spms, reportAbsolutePath.value, fileConverter.value),
+          st.originId,
           meta,
           logger,
           underlying
