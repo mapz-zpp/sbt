@@ -234,7 +234,7 @@ object BuildServerProtocol {
       Def.task {
         val items = bspScalaTestClassesItem.result.all(filter).value
         val successfulItems = anyOrThrow(items).flatten.toVector
-        val result = ScalaTestClassesResult(successfulItems.toVector, None)
+        val result = ScalaTestClassesResult(successfulItems.toVector, state.originId)
         state.respondEvent(result)
       }
     }.evaluated,
@@ -243,7 +243,7 @@ object BuildServerProtocol {
       Def.task {
         val items = bspScalaMainClassesItem.result.all(filter).value
         val successfulItems = anyOrThrow(items)
-        val result = ScalaMainClassesResult(successfulItems.toVector, None)
+        val result = ScalaMainClassesResult(successfulItems.toVector, state.originId)
         state.respondEvent(result)
       }
     }.evaluated,
@@ -307,7 +307,7 @@ object BuildServerProtocol {
       Def.task {
         val items = bspBuildTargetJvmEnvironmentItem.result.all(filter).value
         val successfulItems = anyOrThrow(items)
-        val result = JvmRunEnvironmentResult(successfulItems.toVector, None)
+        val result = JvmRunEnvironmentResult(successfulItems.toVector, state.originId)
         state.respondEvent(result)
       }
     }.evaluated,
@@ -315,7 +315,7 @@ object BuildServerProtocol {
       Def.task {
         val items = bspBuildTargetJvmEnvironmentItem.result.all(filter).value
         val successfulItems = anyOrThrow(items)
-        val result = JvmTestEnvironmentResult(successfulItems.toVector, None)
+        val result = JvmTestEnvironmentResult(successfulItems.toVector, state.originId)
         state.respondEvent(result)
       }
     }.evaluated,
