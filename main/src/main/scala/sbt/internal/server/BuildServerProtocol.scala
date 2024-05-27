@@ -738,6 +738,7 @@ object BuildServerProtocol {
     val classpath = Keys.fullClasspath.value.map(_.data.toURI).toVector
     val jvmOptions = Keys.javaOptions.value.toVector
     val baseDir = Keys.baseDirectory.value.toURI().toString()
+    val mainClasses = Keys.discoveredMainClasses.value
     val env = envVars.value
 
     JvmEnvironmentItem(
@@ -745,7 +746,10 @@ object BuildServerProtocol {
       classpath,
       jvmOptions,
       baseDir,
-      env
+      env,
+      mainClasses.map { path =>
+        JvmMainClass(path, Vector.empty)
+      }.toVector
     )
   }
 
