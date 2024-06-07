@@ -593,6 +593,22 @@ type TestFinish {
     data: sjsonnew.shaded.scalajson.ast.unsafe.JValue
 }
 
+
+type TestReport {
+    originId: String
+    target: sbt.internal.bsp.BuildTargetIdentifier
+    passed: Int
+    failed: Int
+    ignored: Int
+    cancelled: Int
+    skipped: Int
+    time: Int
+}
+
+type TestTask {
+    target: sbt.internal.bsp.BuildTargetIdentifier!
+}
+
 type TestStart {
     displayName: String!
     location: sbt.internal.bsp.Location
