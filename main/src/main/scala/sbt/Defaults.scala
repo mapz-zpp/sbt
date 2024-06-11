@@ -57,6 +57,7 @@ import sbt.internal.server.{
   ServerHandler,
   VirtualTerminal
 }
+import sbt.protocol.testing.TestResult
 import sbt.internal.testing.TestLogger
 import sbt.internal.util.Attributed.data
 import sbt.internal.util.Types._
@@ -1360,6 +1361,24 @@ object Defaults extends BuildCommon {
       Seq(
         testListeners := {
           val stateLogLevel = state.value.get(Keys.logLevel.key).getOrElse(Level.Info)
+          val testTask = bspTestTask.value
+          new TestReportListener {
+            /** called for each class or equivalent grouping */
+            override def startGroup(name: String): Unit =  {}
+
+            /** called for each test method or equivalent */
+            override def testEvent(event: TestEvent): Unit = {
+              for (e <- event.detail) {
+                testTask.notifyTestStart(e.fullyQualifiedName())
+              }
+            }
+
+            /** called if there was an error during test */
+            override def endGroup(name: String, t: Throwable): Unit = {}
+
+            /** called if test completed */
+            override def endGroup(name: String, result: TestResult): Unit = {}
+          } +:
           TestLogger.make(
             streams.value.log,
             closeableTestLogger(

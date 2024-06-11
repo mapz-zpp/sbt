@@ -50,10 +50,10 @@ case class BspTestTask private (
     StandardMain.exchange.notifyEvent("build/taskStart", params)
   }
 
-  private[sbt] def notifyTestStart(): Unit = {
+  private[sbt] def notifyTestStart(displayName: String): Unit = {
     val message = s"Testing $targetName"
     val data = Converter.toJsonUnsafe(
-      TestStart("root-test", None)
+      TestStart(displayName, None)
     )
     val params = TaskStartParams(id, startTimeMillis, message, "test-start", data, originId.orNull)
     StandardMain.exchange.notifyEvent("build/taskStart", params)
