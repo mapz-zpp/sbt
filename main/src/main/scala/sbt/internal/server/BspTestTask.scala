@@ -15,6 +15,8 @@ import sbt.internal.bsp.{
   TestStatusCode,
   TestReport
 }
+import sbt.testing.Status
+import sbt.protocol.testing.TestResult
 import sjsonnew.support.scalajson.unsafe.Converter
 
 object BspTestTask {
@@ -27,9 +29,6 @@ object BspTestTask {
     val taskId = TaskId(BuildServerTasks.uniqueId, Vector())
     val targetName = BuildTargetName.fromScope(project.project, config.name)
     val task = BspTestTask(targetId, targetName, taskId, System.currentTimeMillis(), originId)
-    task.notifyTestTask()
-    Thread.sleep(1000)
-    task.notifyTestStart()
     task
   }
 }
@@ -43,14 +42,16 @@ case class BspTestTask private (
 ) {
   import sbt.internal.bsp.codec.JsonProtocol._
 
-  private[sbt] def notifyTestTask(): Unit = {
+  var testStatusCountMap: Map[Status, Int] = Map.empty
+
+  private[sbt] def notifyTestGroupStart(): Unit = {
     val message = s"Testing $targetName"
     val data = Converter.toJsonUnsafe(TestTask(targetId))
     val params = TaskStartParams(id, startTimeMillis, message, "test-task", data, originId.orNull)
     StandardMain.exchange.notifyEvent("build/taskStart", params)
   }
 
-  private[sbt] def notifyTestStart(displayName: String): Unit = {
+  private[sbt] def notifySingleTestStart(displayName: String): Unit = {
     val message = s"Testing $targetName"
     val data = Converter.toJsonUnsafe(
       TestStart(displayName, None)
@@ -59,34 +60,63 @@ case class BspTestTask private (
     StandardMain.exchange.notifyEvent("build/taskStart", params)
   }
 
-  //TODO add test-start notification with display name being this long string on the right of bsp
-  private[sbt] def notifyFinish(tmp: Any): Unit = {
-    // TODO: Report meaningful test status
-    val message = s"21XYZ $targetName |" + tmp
-    // TODO: Report test status
-    val data = Converter.toJsonUnsafe(TestFinish(targetName, Some(message), 1, None, None, None))
+  private[sbt] def notifyFinish(status: Status, displayName: String): Unit = {
+    val message = s"Finished testing $displayName"
+    val statusCode = statusToCode(status)
+    val data =
+      Converter.toJsonUnsafe(TestFinish(displayName, Some(message), statusCode, None, None, None))
+    val currentCount = testStatusCountMap.getOrElse(status, 0)
+    testStatusCountMap = testStatusCountMap + (status -> (currentCount + 1))
     val params = TaskFinishParams(
       id,
       originId.orNull,
       System.currentTimeMillis(),
-      s"Finished testing $targetName",
-      TestStatusCode.Passed,
+      s"Finished testing $displayName",
+      statusCode,
       "test-finish",
       data
     )
     StandardMain.exchange.notifyEvent("build/taskFinish", params)
   }
 
-  private[sbt] def notifyReport(tmp: Any): Unit = {
-    // TODO: Report meaningful test status
-    // TODO: Report test status
-    val data = Converter.toJsonUnsafe(TestReport(originId.orNull, targetId, 1, 2, 3, 4, 5, 7))
+  private[sbt] def statusToCode(status: Status) = {
+    status match {
+      case Status.Success  => TestStatusCode.Passed
+      case Status.Error    => TestStatusCode.Failed
+      case Status.Skipped  => TestStatusCode.Skipped
+      case Status.Failure  => TestStatusCode.Failed
+      case Status.Ignored  => TestStatusCode.Ignored
+      case Status.Canceled => TestStatusCode.Cancelled
+      case Status.Pending  => TestStatusCode.Ignored
+    }
+  }
+  private[sbt] def resultToCode(result: TestResult) = {
+    result match {
+      case TestResult.Passed => TestStatusCode.Passed
+      case TestResult.Error  => TestStatusCode.Failed
+      case TestResult.Failed => TestStatusCode.Failed
+    }
+  }
+
+  private[sbt] def notifyReport(testResult: TestResult): Unit = {
+    val data = Converter.toJsonUnsafe(
+      TestReport(
+        originId.orNull,
+        targetId,
+        testStatusCountMap.getOrElse(Status.Success, 0),
+        testStatusCountMap.getOrElse(Status.Error, 0),
+        testStatusCountMap.getOrElse(Status.Ignored, 0),
+        testStatusCountMap.getOrElse(Status.Canceled, 0),
+        testStatusCountMap.getOrElse(Status.Skipped, 0),
+        (System.currentTimeMillis() - startTimeMillis).toInt
+      )
+    )
     val params = TaskFinishParams(
       id,
       originId.orNull,
       System.currentTimeMillis(),
       s"Finished testing $targetName",
-      TestStatusCode.Passed,
+      resultToCode(testResult),
       "test-report",
       data
     )

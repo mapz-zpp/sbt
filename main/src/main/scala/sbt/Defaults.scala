@@ -1362,14 +1362,16 @@ object Defaults extends BuildCommon {
         testListeners := {
           val stateLogLevel = state.value.get(Keys.logLevel.key).getOrElse(Level.Info)
           val testTask = bspTestTask.value
-          new TestReportListener {
+          new TestsListener {
+
             /** called for each class or equivalent grouping */
-            override def startGroup(name: String): Unit =  {}
+            override def startGroup(name: String): Unit = {}
 
             /** called for each test method or equivalent */
             override def testEvent(event: TestEvent): Unit = {
               for (e <- event.detail) {
-                testTask.notifyTestStart(e.fullyQualifiedName())
+                testTask.notifySingleTestStart(e.fullyQualifiedName())
+                testTask.notifyFinish(e.status(), e.fullyQualifiedName())
               }
             }
 
@@ -1378,16 +1380,26 @@ object Defaults extends BuildCommon {
 
             /** called if test completed */
             override def endGroup(name: String, result: TestResult): Unit = {}
+
+            /** called once, at beginning. */
+            override def doInit(): Unit = {
+              testTask.notifyTestGroupStart()
+            }
+
+            /** called once, at end of the test group. */
+            override def doComplete(finalResult: TestResult): Unit = {
+              testTask.notifyReport(finalResult)
+            }
           } +:
-          TestLogger.make(
-            streams.value.log,
-            closeableTestLogger(
-              streamsManager.value,
-              (resolvedScoped.value.scope / test),
-              logBuffered.value
-            ),
-            Keys.logLevel.?.value.getOrElse(stateLogLevel),
-          ) +:
+            TestLogger.make(
+              streams.value.log,
+              closeableTestLogger(
+                streamsManager.value,
+                (resolvedScoped.value.scope / test),
+                logBuffered.value
+              ),
+              Keys.logLevel.?.value.getOrElse(stateLogLevel),
+            ) +:
             new TestStatusReporter(succeededFile((test / streams).value.cacheDirectory)) +:
             (TaskZero / testListeners).value
         },
@@ -1706,13 +1718,10 @@ object Defaults extends BuildCommon {
               }
           }
       }
-      bspTask.notifyReport(out.overall.toString)
       val summaries =
         runners map {
           case (tf, r) =>
-            val runnerMes = r.done()
-            bspTask.notifyFinish(runnerMes)
-            Tests.Summary(frameworks(tf).name, runnerMes)
+            Tests.Summary(frameworks(tf).name, r.done())
         }
       out.copy(summaries = summaries)
     }
