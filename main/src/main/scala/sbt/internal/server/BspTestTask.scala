@@ -42,7 +42,7 @@ case class BspTestTask private (
 ) {
   import sbt.internal.bsp.codec.JsonProtocol._
 
-  var testStatusCountMap: Map[Status, Int] = Map.empty
+  private var testStatusCountMap: Map[Status, Int] = Map.empty
 
   private[sbt] def notifyTestGroupStart(): Unit = {
     val message = s"Testing $targetName"
@@ -104,7 +104,8 @@ case class BspTestTask private (
         originId.orNull,
         targetId,
         testStatusCountMap.getOrElse(Status.Success, 0),
-        testStatusCountMap.getOrElse(Status.Error, 0),
+        testStatusCountMap.getOrElse(Status.Failure, 0) + testStatusCountMap
+          .getOrElse(Status.Error, 0),
         testStatusCountMap.getOrElse(Status.Ignored, 0),
         testStatusCountMap.getOrElse(Status.Canceled, 0),
         testStatusCountMap.getOrElse(Status.Skipped, 0),
