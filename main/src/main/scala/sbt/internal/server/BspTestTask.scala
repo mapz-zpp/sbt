@@ -52,7 +52,7 @@ case class BspTestTask private (
   }
 
   private[sbt] def notifySingleTestStart(displayName: String): Unit = {
-    val message = s"Testing $targetName"
+    val message = s"Testing $displayName"
     val data = Converter.toJsonUnsafe(
       TestStart(displayName, None)
     )
