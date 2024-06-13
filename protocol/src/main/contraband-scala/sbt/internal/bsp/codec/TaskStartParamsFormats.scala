@@ -16,8 +16,9 @@ implicit lazy val TaskStartParamsFormat: JsonFormat[sbt.internal.bsp.TaskStartPa
       val message = unbuilder.readField[Option[String]]("message")
       val dataKind = unbuilder.readField[Option[String]]("dataKind")
       val data = unbuilder.readField[Option[sjsonnew.shaded.scalajson.ast.unsafe.JValue]]("data")
+      val originId = unbuilder.readField[Option[String]]("originId")
       unbuilder.endObject()
-      sbt.internal.bsp.TaskStartParams(taskId, eventTime, message, dataKind, data)
+      sbt.internal.bsp.TaskStartParams(taskId, eventTime, message, dataKind, data, originId)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -29,6 +30,7 @@ implicit lazy val TaskStartParamsFormat: JsonFormat[sbt.internal.bsp.TaskStartPa
     builder.addField("message", obj.message)
     builder.addField("dataKind", obj.dataKind)
     builder.addField("data", obj.data)
+    builder.addField("originId", obj.originId)
     builder.endObject()
   }
 }

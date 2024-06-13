@@ -27,7 +27,7 @@ import sbt.internal.io.WatchState
 import sbt.internal.librarymanagement.{ CompatibilityWarningOptions, IvySbt }
 import sbt.internal.remotecache.RemoteCacheArtifact
 import sbt.internal.server.BuildServerProtocol.BspFullWorkspace
-import sbt.internal.server.{ BspCompileTask, BuildServerReporter, ServerHandler }
+import sbt.internal.server.{ BspCompileTask, BspTestTask, BuildServerReporter, ServerHandler }
 import sbt.internal.util.{ AttributeKey, ProgressState, SourcePosition }
 import sbt.internal.util.StringAttributeKey
 import sbt.io._
@@ -456,6 +456,7 @@ object Keys {
   val bspBuildTargetCompileItem = taskKey[Int]("").withRank(DTask)
   @cacheLevel(include = Array.empty) private[sbt] val bspCompileTask = taskKey[BspCompileTask]("").withRank(DTask)
   val bspBuildTargetTest = inputKey[Unit]("Corresponds to buildTarget/test request").withRank(DTask)
+  @cacheLevel(include = Array.empty) private[sbt] val bspTestTask = taskKey[BspTestTask]("").withRank(DTask)
   val bspBuildTargetRun = inputKey[Unit]("Corresponds to buildTarget/run request").withRank(DTask)
   val bspBuildTargetCleanCache = inputKey[Unit]("Corresponds to buildTarget/cleanCache request").withRank(DTask)
   val bspBuildTargetScalacOptions = inputKey[Unit]("").withRank(DTask)
