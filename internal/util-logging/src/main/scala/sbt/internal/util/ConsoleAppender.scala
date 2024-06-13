@@ -22,6 +22,7 @@ import sbt.util._
 import org.apache.logging.log4j.core.AbstractLogEvent
 import org.apache.logging.log4j.message.SimpleMessageFactory
 import java.util.concurrent.atomic.AtomicReference
+import scala.annotation.nowarn
 
 object ConsoleLogger {
   // These are provided so other modules do not break immediately.
@@ -100,7 +101,7 @@ class ConsoleLogger private[ConsoleLogger] (
 
   override def log(level: Level.Value, message: => String): Unit =
     if (atLevel(level)) {
-      appender.appendLog(level, message)
+      appender.appendLog(level, message, None)
     }
 
   override def success(message: => String): Unit =
@@ -463,7 +464,7 @@ trait Appender extends AutoCloseable {
     if (traceLevel <= 2) {
       val ctx = new SuppressedTraceContext(traceLevel, ansiCodesSupported && useFormat)
       for (msg <- suppressedMessage(ctx))
-        appendLog(NO_COLOR, "trace", NO_COLOR, msg)
+        appendLog(NO_COLOR, "trace", NO_COLOR, msg, None)
     }
   }
 
@@ -476,7 +477,7 @@ trait Appender extends AutoCloseable {
    *   The message to log.
    */
   def control(event: ControlEvent.Value, message: => String): Unit =
-    appendLog(labelColor(Level.Info), Level.Info.toString, BLUE, message)
+    appendLog(labelColor(Level.Info), Level.Info.toString, BLUE, message, None)
 
   /**
    * Appends the message `message` to the to the log at level `level`.
@@ -486,8 +487,8 @@ trait Appender extends AutoCloseable {
    * @param message
    *   The message to log.
    */
-  def appendLog(level: Level.Value, message: => String): Unit = {
-    appendLog(labelColor(level), level.toString, NO_COLOR, message)
+  def appendLog(level: Level.Value, message: => String, originId: Option[String]): Unit = {
+    appendLog(labelColor(level), level.toString, NO_COLOR, message, originId)
   }
 
   /**
@@ -552,7 +553,7 @@ trait Appender extends AutoCloseable {
 
   // success is called by ConsoleLogger.
   private[sbt] def success(message: => String): Unit = {
-    appendLog(SUCCESS_LABEL_COLOR, Level.SuccessLabel, SUCCESS_MESSAGE_COLOR, message)
+    appendLog(SUCCESS_LABEL_COLOR, Level.SuccessLabel, SUCCESS_MESSAGE_COLOR, message, None)
   }
 
   private def write(msg: String): Unit = {
@@ -574,7 +575,7 @@ trait Appender extends AutoCloseable {
     msg match {
       case o: ObjectMessage         => appendMessageContent(level, o.getParameter)
       case o: ReusableObjectMessage => appendMessageContent(level, o.getParameter)
-      case _                        => appendLog(level, msg.getFormattedMessage)
+      case _                        => appendLog(level, msg.getFormattedMessage, None)
     }
 
   private def appendTraceEvent(te: TraceEvent): Unit = {
@@ -588,13 +589,13 @@ trait Appender extends AutoCloseable {
         ShowLines[TraceEvent]((t: TraceEvent) => {
           throwableShowLines.showLines(t.message)
         })
-      codec.showLines(te).toVector foreach { appendLog(Level.Error, _) }
+      codec.showLines(te).toVector foreach { appendLog(Level.Error, _, None) }
     }
     if (traceLevel <= 2) {
       suppressedMessage(
         new SuppressedTraceContext(traceLevel, ansiCodesSupported && useFormat)
       ) foreach {
-        appendLog(Level.Error, _)
+        appendLog(Level.Error, _, None)
       }
     }
   }
@@ -612,17 +613,18 @@ trait Appender extends AutoCloseable {
             case Some(codec) =>
               codec.showLines(oe.message.asInstanceOf[AnyRef]).toVector foreach (appendLog(
                 level,
-                _
+                _,
+                None
               ))
-            case _ => appendLog(level, oe.message.toString)
+            case _ => appendLog(level, oe.message.toString, None)
           }
       }
     }
 
     o match {
-      case x: StringEvent    => Vector(x.message) foreach { appendLog(level, _) }
+      case x: StringEvent    => Vector(x.message) foreach { appendLog(level, _, None) }
       case x: ObjectEvent[_] => appendEvent(x)
-      case _                 => Vector(o.toString) foreach { appendLog(level, _) }
+      case _                 => Vector(o.toString) foreach { appendLog(level, _, None) }
     }
   }
   private[sbt] def appendObjectEvent[T](level: Level.Value, message: => ObjectEvent[T]): Unit =
@@ -651,7 +653,7 @@ private[sbt] class ConsoleAppenderFromLog4J(
     this(name, Properties.from(Terminal.get), _ => None, delegate)
   override def close(): Unit = delegate.stop()
   private[sbt] def toLog4J: XAppender = delegate
-  override def appendLog(level: sbt.util.Level.Value, message: => String): Unit = {
+  override def appendLog(level: sbt.util.Level.Value, message: => String, @nowarn originId: Option[String]): Unit = {
     delegate.append(new AbstractLogEvent {
       override def getLevel(): XLevel = ConsoleAppender.toXLevel(level)
       override def getMessage(): Message =

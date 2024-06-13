@@ -12,6 +12,7 @@ import sbt.internal.util._
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{ AtomicReference, AtomicBoolean }
+import scala.annotation.nowarn
 // import scala.jdk.CollectionConverters.*
 
 /**
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.{ AtomicReference, AtomicBoolean }
  * introducing memory leaks.
  */
 sealed trait LoggerContext extends AutoCloseable {
-  def logger(name: String, channelName: Option[String], execId: Option[String]): ManagedLogger
+  def logger(name: String, channelName: Option[String], execId: Option[String], originId: Option[String]): ManagedLogger
   def clearAppenders(loggerName: String): Unit
   def addAppender(
       loggerName: String,
@@ -63,14 +64,15 @@ object LoggerContext {
     override def logger(
         name: String,
         channelName: Option[String],
-        execId: Option[String]
+        execId: Option[String],
+        originId: Option[String]
     ): ManagedLogger = {
       if (closed.get) {
         throw new IllegalStateException("Tried to create logger for closed LoggerContext")
       }
       val xlogger = new Log
       loggers.put(name, xlogger)
-      new ManagedLogger(name, channelName, execId, xlogger, Some(Terminal.get), this)
+      new ManagedLogger(name, channelName, execId, originId, xlogger, Some(Terminal.get), this)
     }
     override def clearAppenders(loggerName: String): Unit = {
       loggers.get(loggerName) match {

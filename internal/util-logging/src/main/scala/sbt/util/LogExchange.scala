@@ -30,9 +30,9 @@ sealed abstract class LogExchange {
     Util.ignoreResult(configs.putIfAbsent(name, config))
   private[util] def removeConfig(name: String): Option[LoggerConfig] = Option(configs.remove(name))
 
-  def logger(name: String): ManagedLogger = logger(name, None, None)
-  def logger(name: String, channelName: Option[String], execId: Option[String]): ManagedLogger =
-    LoggerContext.globalContext.logger(name, channelName, execId)
+  def logger(name: String): ManagedLogger = logger(name, None, None, None)
+  def logger(name: String, channelName: Option[String], execId: Option[String], originId: Option[String]): ManagedLogger =
+    LoggerContext.globalContext.logger(name, channelName, execId, originId)
   def unbindLoggerAppenders(loggerName: String): Unit = {
     LoggerContext.globalContext.clearAppenders(loggerName)
   }
