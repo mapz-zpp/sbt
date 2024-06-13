@@ -30,6 +30,7 @@ import sbt.Project.{
   // richTaskSessionVar,
   // sbtRichTaskPromise
 }
+import sbt.protocol.testing.TestResult
 import sbt.ProjectExtra.*
 import sbt.Scope.{ GlobalScope, ThisScope, fillTaskAxis }
 import sbt.State.StateOpsImpl
@@ -1424,15 +1425,45 @@ object Defaults extends BuildCommon {
       Seq(
         testListeners := {
           val stateLogLevel = state.value.get(Keys.logLevel.key).getOrElse(Level.Info)
-          TestLogger.make(
-            streams.value.log,
-            closeableTestLogger(
-              streamsManager.value,
-              (resolvedScoped.value.scope / test),
-              logBuffered.value
-            ),
-            Keys.logLevel.?.value.getOrElse(stateLogLevel),
-          ) +:
+          val testTask = bspTestTask.value
+          new TestsListener {
+
+            /** called for each class or equivalent grouping */
+            override def startGroup(name: String): Unit = {}
+
+            /** called for each test method or equivalent */
+            override def testEvent(event: TestEvent): Unit = {
+              for (e <- event.detail) {
+                testTask.notifySingleTestStart(e.fullyQualifiedName())
+                testTask.notifyFinish(e.status(), e.fullyQualifiedName())
+              }
+            }
+
+            /** called if there was an error during test */
+            override def endGroup(name: String, t: Throwable): Unit = {}
+
+            /** called if test completed */
+            override def endGroup(name: String, result: TestResult): Unit = {}
+
+            /** called once, at beginning. */
+            override def doInit(): Unit = {
+              testTask.notifyTestGroupStart()
+            }
+
+            /** called once, at end of the test group. */
+            override def doComplete(finalResult: TestResult): Unit = {
+              testTask.notifyReport(finalResult)
+            }
+          } +:
+            TestLogger.make(
+              streams.value.log,
+              closeableTestLogger(
+                streamsManager.value,
+                (resolvedScoped.value.scope / test),
+                logBuffered.value
+              ),
+              Keys.logLevel.?.value.getOrElse(stateLogLevel),
+            ) +:
             new TestStatusReporter(succeededFile((test / streams).value.cacheDirectory)) +:
             (TaskZero / testListeners).value
         },

@@ -213,7 +213,7 @@ object MainLoop {
     val exchange = StandardMain.exchange
     exchange.setState(state)
     exchange.notifyStatus(
-      ExecStatusEvent("Processing", channelName, exec.execId, Vector())
+      ExecStatusEvent("DupaProcessing", channelName, exec.execId, Vector())
     )
     try {
       def process(): State = {

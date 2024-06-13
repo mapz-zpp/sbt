@@ -12,14 +12,13 @@ implicit lazy val TaskFinishParamsFormat: JsonFormat[sbt.internal.bsp.TaskFinish
       case Some(__js) =>
       unbuilder.beginObject(__js)
       val taskId = unbuilder.readField[sbt.internal.bsp.TaskId]("taskId")
-      val originId = unbuilder.readField[Option[String]]("originId")
       val eventTime = unbuilder.readField[Option[Long]]("eventTime")
       val message = unbuilder.readField[Option[String]]("message")
       val status = unbuilder.readField[Int]("status")
       val dataKind = unbuilder.readField[Option[String]]("dataKind")
       val data = unbuilder.readField[Option[sjsonnew.shaded.scalajson.ast.unsafe.JValue]]("data")
       unbuilder.endObject()
-      sbt.internal.bsp.TaskFinishParams(taskId, originId, eventTime, message, status, dataKind, data)
+      sbt.internal.bsp.TaskFinishParams(taskId, eventTime, message, status, dataKind, data)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -27,7 +26,6 @@ implicit lazy val TaskFinishParamsFormat: JsonFormat[sbt.internal.bsp.TaskFinish
   override def write[J](obj: sbt.internal.bsp.TaskFinishParams, builder: Builder[J]): Unit = {
     builder.beginObject()
     builder.addField("taskId", obj.taskId)
-    builder.addField("originId", obj.originId)
     builder.addField("eventTime", obj.eventTime)
     builder.addField("message", obj.message)
     builder.addField("status", obj.status)
