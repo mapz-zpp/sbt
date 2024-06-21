@@ -876,12 +876,18 @@ type ResourcesItem {
 
 # JVM Environment requests
 
+type JvmMainClass {
+  className: String!
+  arguments: [String]!
+}
+
 type JvmEnvironmentItem {
   target: sbt.internal.bsp.BuildTargetIdentifier!
   classpath: [java.net.URI]!
   jvmOptions: [String]!
   workingDirectory: String!
   environmentVariables: StringStringMap!
+  mainClasses: [sbt.internal.bsp.JvmMainClass]
 }
 
 type JvmTestEnvironmentParams {

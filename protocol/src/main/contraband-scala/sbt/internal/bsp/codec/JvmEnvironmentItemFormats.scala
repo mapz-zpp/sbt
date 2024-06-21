@@ -5,7 +5,7 @@
 // DO NOT EDIT MANUALLY
 package sbt.internal.bsp.codec
 import _root_.sjsonnew.{ Unbuilder, Builder, JsonFormat, deserializationError }
-trait JvmEnvironmentItemFormats { self: sbt.internal.bsp.codec.BuildTargetIdentifierFormats with sjsonnew.BasicJsonProtocol =>
+trait JvmEnvironmentItemFormats { self: sbt.internal.bsp.codec.BuildTargetIdentifierFormats with sjsonnew.BasicJsonProtocol with sbt.internal.bsp.codec.JvmMainClassFormats =>
 implicit lazy val JvmEnvironmentItemFormat: JsonFormat[sbt.internal.bsp.JvmEnvironmentItem] = new JsonFormat[sbt.internal.bsp.JvmEnvironmentItem] {
   override def read[J](__jsOpt: Option[J], unbuilder: Unbuilder[J]): sbt.internal.bsp.JvmEnvironmentItem = {
     __jsOpt match {
@@ -16,8 +16,9 @@ implicit lazy val JvmEnvironmentItemFormat: JsonFormat[sbt.internal.bsp.JvmEnvir
       val jvmOptions = unbuilder.readField[Vector[String]]("jvmOptions")
       val workingDirectory = unbuilder.readField[String]("workingDirectory")
       val environmentVariables = unbuilder.readField[scala.collection.immutable.Map[String, String]]("environmentVariables")
+      val mainClasses = unbuilder.readField[Vector[sbt.internal.bsp.JvmMainClass]]("mainClasses")
       unbuilder.endObject()
-      sbt.internal.bsp.JvmEnvironmentItem(target, classpath, jvmOptions, workingDirectory, environmentVariables)
+      sbt.internal.bsp.JvmEnvironmentItem(target, classpath, jvmOptions, workingDirectory, environmentVariables, mainClasses)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -29,6 +30,7 @@ implicit lazy val JvmEnvironmentItemFormat: JsonFormat[sbt.internal.bsp.JvmEnvir
     builder.addField("jvmOptions", obj.jvmOptions)
     builder.addField("workingDirectory", obj.workingDirectory)
     builder.addField("environmentVariables", obj.environmentVariables)
+    builder.addField("mainClasses", obj.mainClasses)
     builder.endObject()
   }
 }
