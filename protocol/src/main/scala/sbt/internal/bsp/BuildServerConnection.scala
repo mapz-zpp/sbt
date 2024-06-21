@@ -46,7 +46,6 @@ object BuildServerConnection {
     val argv =
       Vector(
         s"$javaHome/bin/java",
-//        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
         "-Xms100m",
         "-Xmx100m",
         "-classpath",
