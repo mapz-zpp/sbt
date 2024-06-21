@@ -34,9 +34,6 @@ final class ContentLogger(val log: TLogger, val flush: () => Unit)
 
 trait TestsListener extends TestReportListener {
 
-  /** called once before a test */
-  def doBeforeTest(testName: String): Unit = {}
-
   /** called once, at beginning. */
   def doInit(): Unit
 

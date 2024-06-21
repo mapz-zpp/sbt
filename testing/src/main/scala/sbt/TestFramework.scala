@@ -134,11 +134,7 @@ final class TestRunner(
     def runTest() = {
       // here we get the results! here is where we'd pass in the event listener
       val results = new scala.collection.mutable.ListBuffer[Event]
-      val handler = new EventHandler {
-        def handle(e: Event): Unit = {
-          results += e
-        }
-      }
+      val handler = new EventHandler { def handle(e: Event): Unit = { results += e } }
       val loggers: Vector[ContentLogger] = listeners.flatMap(_.contentLogger(testDefinition))
       def errorEvents(e: Throwable): Array[sbt.testing.Task] = {
         val taskDef = testTask.taskDef
@@ -278,10 +274,6 @@ object TestFramework {
     def foreachListenerSafe(f: TestsListener => Unit): () => Unit =
       () => safeForeach(testsListeners, log)(f)
 
-    def sendTestStart(testName: String) = () => {
-      foreachListenerSafe(_.doBeforeTest(s"NaszQualifiedName:${testName}"))
-    }
-
     val startTask = foreachListenerSafe(_.doInit())
     val testTasks =
       Map(tests.toSeq.flatMap {
@@ -290,15 +282,6 @@ object TestFramework {
           val testTasks = withContextLoader(loader) { runner.tasks(testDefinitions) }
           for (testTask <- testTasks) yield {
             val taskDef = testTask.taskDef
-            testTask
-              .taskDef()
-              .selectors()
-              .foreach({
-                case s: TestSelector         => sendTestStart(s.testName())
-                case s: NestedTestSelector   => sendTestStart(s.testName())
-                case s: TestWildcardSelector => sendTestStart(s.testWildcard())
-              })
-
             (taskDef.fullyQualifiedName, createTestFunction(loader, taskDef, runner, testTask))
           }
       }: _*)
