@@ -3850,7 +3850,7 @@ object Classpaths {
       forceUpdatePeriod.value match {
         case None => false
         case Some(period) =>
-          val fullUpdateOutput = cacheDirectory / "out"
+          val fullUpdateOutput = cacheDirectory / "output"
           val now = System.currentTimeMillis
           val diff = now - IO.getModifiedTimeOrZero(fullUpdateOutput)
           val elapsedDuration = new FiniteDuration(diff, TimeUnit.MILLISECONDS)
