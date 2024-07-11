@@ -46,7 +46,7 @@ object RunFromSourceMain {
     val options =
       Vector(workingDirectory.toString, scalaVersion, sbtVersion, cp.mkString(pathSeparator))
     val context = LoggerContext(useLog4J = SysProp.useLog4J)
-    val log = context.logger("RunFromSourceMain.fork", None, None)
+    val log = context.logger("RunFromSourceMain.fork", None, None, None)
     try runner.fork("sbt.RunFromSourceMain", cp, options, log)
     finally context.close()
   }
@@ -124,7 +124,7 @@ object RunFromSourceMain {
   private lazy val defaultBootDirectory: File =
     file(sys.props("user.home")) / ".sbt" / "scripted" / "boot"
   private def scalaHome(bootDirectory: File, scalaVersion: String, context: LoggerContext): File = {
-    val log = context.logger("run-from-source", None, None)
+    val log = context.logger("run-from-source", None, None, None)
     val scalaHome0 = bootDirectory / s"scala-$scalaVersion"
     if ((scalaHome0 / "lib" / "scala-library.jar").exists) scalaHome0
     else {

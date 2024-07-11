@@ -19,7 +19,7 @@ class ManagedLoggerSpec extends AnyFlatSpec with Matchers {
   val context = LoggerContext(useLog4J = true)
   @nowarn
   val asyncStdout = new ConsoleAppenderFromLog4J("asyncStdout", LogExchange.asyncStdout)
-  def newLogger(name: String): ManagedLogger = context.logger(name, None, None)
+  def newLogger(name: String): ManagedLogger = context.logger(name, None, None, None)
   "ManagedLogger" should "log to console" in {
     val log = newLogger("foo")
     context.addAppender("foo", asyncStdout -> Level.Info)
