@@ -19,7 +19,6 @@ import sbt.internal.util.ConsoleAppender.{ ClearPromptLine, ClearScreenAfterCurs
 import sbt.internal.util._
 import sbt.internal.util.complete.Parser
 
-//import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.annotation.tailrec
 
 private[sbt] trait UITask extends Runnable with AutoCloseable {

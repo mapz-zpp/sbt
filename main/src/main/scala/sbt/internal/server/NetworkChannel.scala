@@ -61,7 +61,7 @@ final class NetworkChannel(
       auth: Set[ServerAuthentication],
       instance: ServerInstance,
       handlers: Seq[ServerHandler],
-      log: Logger,
+      log: Logger
   ) =
     this(
       name,
@@ -115,21 +115,18 @@ final class NetworkChannel(
     def jsonRpcRespondError(execId: Option[String], code: Long, message: String): Unit =
       self.respondError(code, message, execId)
 
-    def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit = {
+    def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit =
       self.jsonRpcNotify(method, params)
-    }
 
     def appendExec(
         commandLine: String,
         execId: Option[String],
         originId: Option[String] = None
-    ): Boolean = {
+    ): Boolean =
       self.append(Exec(commandLine, execId, Some(CommandSource(name)), originId))
-    }
 
-    def appendExec(exec: Exec): Boolean = {
+    def appendExec(exec: Exec): Boolean =
       self.append(exec)
-    }
 
     def log: Logger = self.log
     def name: String = self.name
@@ -182,7 +179,7 @@ final class NetworkChannel(
                 logMessage(
                   "error",
                   s"server protocol $x1 is no longer supported",
-                  Some("run:error")
+                  None
                 )
               }
             }
@@ -239,7 +236,7 @@ final class NetworkChannel(
               logMessage(
                 "error",
                 s"error $code while handling notification: $message",
-                Some("handle-body")
+                None
               )
           }
         case Right(msg) =>

@@ -424,7 +424,6 @@ object BuildServerProtocol {
             val param = Converter.fromJson[CompileParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspBuildTargetCompile.key
-            callback.log.debug(s"******** param: $param, command: $command")
             val _ = callback.appendExec(s"$command $targets", Some(r.id), param.originId)
 
           case r: JsonRpcRequestMessage if r.method == Method.Test =>
