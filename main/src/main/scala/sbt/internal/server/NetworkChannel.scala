@@ -20,7 +20,6 @@ import java.util.concurrent.{
   TimeUnit
 }
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
-
 import sbt.BasicCommandStrings.{ Shutdown, TerminateAction }
 import sbt.internal.langserver.{ CancelRequestParams, ErrorCodes, LogMessageParams, MessageType }
 import sbt.internal.protocol.{
@@ -29,7 +28,6 @@ import sbt.internal.protocol.{
   JsonRpcResponseError,
   JsonRpcResponseMessage
 }
-
 import sbt.internal.ui.{ UITask, UserThread }
 import sbt.internal.util.{ Prompt, ReadJsonFromInputStream, Terminal, Util }
 import sbt.internal.util.Terminal.TerminalImpl
@@ -42,13 +40,10 @@ import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
 import sbt.protocol._
-import sbt.protocol.Serialization.{ attach, cancelReadSystemIn, readSystemIn, promptChannel }
-
+import sbt.protocol.Serialization.{ attach, cancelReadSystemIn, promptChannel, readSystemIn }
 import sbt.protocol.codec.JsonProtocol._
-
 import sjsonnew._
 import sjsonnew.support.scalajson.unsafe.{ CompactPrinter, Converter }
-
 import sbt.internal.util.ProgressState
 
 final class NetworkChannel(
@@ -66,7 +61,7 @@ final class NetworkChannel(
       auth: Set[ServerAuthentication],
       instance: ServerInstance,
       handlers: Seq[ServerHandler],
-      log: Logger
+      log: Logger,
   ) =
     this(
       name,
@@ -74,7 +69,7 @@ final class NetworkChannel(
       auth,
       instance,
       handlers,
-      new UITask.AskUserTask(_, _),
+      new UITask.AskUserTask(_, _)
     )
 
   def log: Logger = StandardMain.exchange.withState(_.log)
@@ -120,13 +115,21 @@ final class NetworkChannel(
     def jsonRpcRespondError(execId: Option[String], code: Long, message: String): Unit =
       self.respondError(code, message, execId)
 
-    def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit =
+    def jsonRpcNotify[A: JsonFormat](method: String, params: A): Unit = {
       self.jsonRpcNotify(method, params)
+    }
 
-    def appendExec(commandLine: String, execId: Option[String]): Boolean =
-      self.append(Exec(commandLine, execId, Some(CommandSource(name))))
+    def appendExec(
+        commandLine: String,
+        execId: Option[String],
+        originId: Option[String] = None
+    ): Boolean = {
+      self.append(Exec(commandLine, execId, Some(CommandSource(name)), originId))
+    }
 
-    def appendExec(exec: Exec): Boolean = self.append(exec)
+    def appendExec(exec: Exec): Boolean = {
+      self.append(exec)
+    }
 
     def log: Logger = self.log
     def name: String = self.name
@@ -176,7 +179,11 @@ final class NetworkChannel(
           try {
             val onHeader: String => Unit = line => {
               if (line.startsWith(ct) && line.contains(x1)) {
-                logMessage("error", s"server protocol $x1 is no longer supported")
+                logMessage(
+                  "error",
+                  s"server protocol $x1 is no longer supported",
+                  Some("run:error")
+                )
               }
             }
             val content = ReadJsonFromInputStream(in, running, Some(onHeader))
@@ -229,7 +236,11 @@ final class NetworkChannel(
             onNotification(ntf)
           } catch {
             case LangServerError(code, message) =>
-              logMessage("error", s"error $code while handling notification: $message")
+              logMessage(
+                "error",
+                s"error $code while handling notification: $message",
+                Some("handle-body")
+              )
           }
         case Right(msg) =>
           log.debug(s"unhandled message: $msg")
@@ -237,7 +248,7 @@ final class NetworkChannel(
           val msg =
             s"got invalid chunk from client (${new String(chunk.toArray, "UTF-8")}): $errorDesc"
           log.error(msg)
-          logMessage("error", msg)
+          logMessage("error", msg, Option.empty)
       }
     }
   }
@@ -317,11 +328,11 @@ final class NetworkChannel(
 
   def notifyEvent(event: EventMessage): Unit = {
     event match {
-      case entry: LogEvent => logMessage(entry.level, entry.message)
+      case entry: LogEvent => logMessage(entry.level, entry.message, entry.originId)
       case entry: ExecStatusEvent =>
         getPendingRequest(entry.execId) match {
           case Some(request) =>
-            logMessage("debug", s"${entry.status} ${request.method}")
+            logMessage("debug", s"${entry.status} ${request.method}", None)
           case None =>
             log.debug(
               s"unmatched ${entry.status} event for requestId ${entry.execId}: ${entry.message}"
@@ -397,7 +408,12 @@ final class NetworkChannel(
   private def onExecCommand(cmd: ExecCommand) = {
     if (initialized) {
       append(
-        Exec(cmd.commandLine, cmd.execId orElse Some(Exec.newExecId), Some(CommandSource(name)))
+        Exec(
+          cmd.commandLine,
+          cmd.execId orElse Some(Exec.newExecId),
+          Some(CommandSource(name)),
+          None
+        )
       )
       ()
     } else {
@@ -631,11 +647,11 @@ final class NetworkChannel(
     publishBytes(bytes)
   }
 
-  def logMessage(level: String, message: String): Unit = {
+  def logMessage(level: String, message: String, originId: Option[String]): Unit = {
     import sbt.internal.langserver.codec.JsonProtocol._
     jsonRpcNotify(
       "build/logMessage",
-      LogMessageParams(MessageType.fromLevelString(level), message)
+      LogMessageParams(MessageType.fromLevelString(level), message, originId)
     )
   }
 

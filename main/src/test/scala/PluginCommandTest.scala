@@ -74,7 +74,7 @@ object FakeState {
     try {
       val state = FakeState(logFile, enabledPlugins: _*)
       ITerminal.withOut(new PrintStream(outBuffer, true)) {
-        MainLoop.processCommand(Exec(input, None), state)
+        MainLoop.processCommand(Exec(input, None, None), state)
       }
       new String(outBuffer.toByteArray)
     } finally {

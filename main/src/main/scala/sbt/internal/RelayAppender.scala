@@ -20,7 +20,8 @@ class RelayAppender(override val name: String)
       _ => None
     ) {
   lazy val exchange = StandardMain.exchange
-  override def appendLog(level: Level.Value, message: => String): Unit = {
-    exchange.logMessage(LogEvent(level = level.toString, message = message))
+
+  override def appendLog(level: Level.Value, message: => String, originId: Option[String]): Unit = {
+    exchange.logMessage(LogEvent(level = level.toString, message = message, originId = originId))
   }
 }

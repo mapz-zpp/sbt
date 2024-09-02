@@ -82,6 +82,7 @@ final class BuildServerReporterImpl(
     bspCompileState: BspCompileState,
     converter: FileConverter,
     sourcePositionMapper: xsbti.Position => xsbti.Position,
+    originId: Option[String],
     protected override val isMetaBuild: Boolean,
     protected override val logger: ManagedLogger,
     protected override val underlying: Reporter
@@ -139,7 +140,7 @@ final class BuildServerReporterImpl(
         val params = PublishDiagnosticsParams(
           document,
           buildTarget,
-          originId = None,
+          originId,
           diags,
           reset = true
         )
@@ -159,7 +160,7 @@ final class BuildServerReporterImpl(
       val params = PublishDiagnosticsParams(
         document,
         buildTarget,
-        originId = None,
+        originId,
         Vector(diagnostic),
         reset = false
       )

@@ -13,7 +13,6 @@ import java.io.IOException
 import java.net.Socket
 import java.util.concurrent.atomic._
 import java.util.concurrent.{ LinkedBlockingQueue, TimeUnit }
-
 import sbt.BasicCommandStrings.{
   Cancel,
   CompleteExec,
@@ -103,13 +102,14 @@ private[sbt] final class CommandExchange {
                     case _             =>
                   }
                 }
-                Exec(TerminateAction, Some(CommandSource(ConsoleChannel.defaultName)))
+                Exec(TerminateAction, Some(CommandSource(ConsoleChannel.defaultName)), None)
               case x => x
             }
           case _ => commandQueue.take
         })
         catch { case _: InterruptedException => None }
       }
+
       poll match {
         case Some(exec) if exec.source.fold(true)(s => channels.exists(_.name == s.channelName)) =>
           exec.commandLine match {
@@ -165,7 +165,7 @@ private[sbt] final class CommandExchange {
     currentExec.withFilter(_.source.map(_.channelName) == Some(c.name)).foreach { e =>
       Util.ignoreResult(NetworkChannel.cancel(e.execId, e.execId.getOrElse("0"), force = false))
     }
-    try commandQueue.put(Exec(s"${ContinuousCommands.stopWatch} ${c.name}", None))
+    try commandQueue.put(Exec(s"${ContinuousCommands.stopWatch} ${c.name}", None, None))
     catch { case _: InterruptedException => }
   }
 
@@ -272,7 +272,7 @@ private[sbt] final class CommandExchange {
                   monitoringActiveJson.set(false)
                   // FailureWall is effectively a no-op command that will
                   // cause shell to re-run which should start the server
-                  commandQueue.add(Exec(BasicCommandStrings.FailureWall, None))
+                  commandQueue.add(Exec(BasicCommandStrings.FailureWall, None, None))
                   o.close()
                 }
               }
@@ -443,7 +443,7 @@ private[sbt] final class CommandExchange {
   private[sbt] def shutdown(name: String): Unit = {
     Option(currentExecRef.get).foreach(cancel)
     commandQueue.clear()
-    val exit = Exec(Shutdown, Some(Exec.newExecId), Some(CommandSource(name)))
+    val exit = Exec(Shutdown, Some(Exec.newExecId), Some(CommandSource(name)), None)
     commandQueue.add(exit)
     ()
   }
@@ -482,6 +482,7 @@ private[sbt] final class CommandExchange {
                   case c: NetworkChannel if !c.isInteractive => exit(mt)
                   case _                                     =>
                 }
+
                 commandQueue.add(Exec(t, None, None))
               case `TerminateAction` => exit(mt)
               case `Shutdown` =>

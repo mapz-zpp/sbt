@@ -713,7 +713,7 @@ private[sbt] object Load {
           plugs.pluginData.buildTarget match {
             case None => EvalReporter.console(settings)
             case Some(buildTarget) =>
-              new BuildServerEvalReporter(buildTarget, new ConsoleReporter(settings))
+              new BuildServerEvalReporter(buildTarget, new ConsoleReporter(settings), s.originId)
           }
         mkEval(plugs.classpath, defDir, plugs.pluginData.scalacOptions, mkReporter)
       }

@@ -17,8 +17,9 @@ implicit lazy val ExecStatusEventFormat: JsonFormat[sbt.protocol.ExecStatusEvent
       val commandQueue = unbuilder.readField[Vector[String]]("commandQueue")
       val exitCode = unbuilder.readField[Option[Long]]("exitCode")
       val message = unbuilder.readField[Option[String]]("message")
+      val originId = unbuilder.readField[Option[String]]("originId")
       unbuilder.endObject()
-      sbt.protocol.ExecStatusEvent(status, channelName, execId, commandQueue, exitCode, message)
+      sbt.protocol.ExecStatusEvent(status, channelName, execId, commandQueue, exitCode, message, originId)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -31,6 +32,7 @@ implicit lazy val ExecStatusEventFormat: JsonFormat[sbt.protocol.ExecStatusEvent
     builder.addField("commandQueue", obj.commandQueue)
     builder.addField("exitCode", obj.exitCode)
     builder.addField("message", obj.message)
+    builder.addField("originId", obj.originId)
     builder.endObject()
   }
 }

@@ -13,8 +13,9 @@ implicit lazy val LogEventFormat: JsonFormat[sbt.protocol.LogEvent] = new JsonFo
       unbuilder.beginObject(__js)
       val level = unbuilder.readField[String]("level")
       val message = unbuilder.readField[String]("message")
+      val originId = unbuilder.readField[Option[String]]("originId")
       unbuilder.endObject()
-      sbt.protocol.LogEvent(level, message)
+      sbt.protocol.LogEvent(level, message, originId)
       case None =>
       deserializationError("Expected JsObject but found None")
     }
@@ -23,6 +24,7 @@ implicit lazy val LogEventFormat: JsonFormat[sbt.protocol.LogEvent] = new JsonFo
     builder.beginObject()
     builder.addField("level", obj.level)
     builder.addField("message", obj.message)
+    builder.addField("originId", obj.originId)
     builder.endObject()
   }
 }

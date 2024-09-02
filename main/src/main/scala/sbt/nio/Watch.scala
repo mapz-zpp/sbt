@@ -288,7 +288,7 @@ object Watch {
   // be evolved in a binary compatible way.
   object Run {
     def apply(commands: String*): Run = new Watch.Run(commands: _*)
-    def unapply(r: Run): Option[List[Exec]] = Some(r.commands.toList.map(Exec(_, None)))
+    def unapply(r: Run): Option[List[Exec]] = Some(r.commands.toList.map(Exec(_, None, None)))
   }
 
   case object Prompt extends CancelWatch
@@ -436,7 +436,7 @@ object Watch {
     if (events.isEmpty) None else Some(events.minBy(_._1))
 
   private implicit class StringToExec(val s: String) extends AnyVal {
-    def toExec: Exec = Exec(s, None)
+    def toExec: Exec = Exec(s, None, None)
   }
 
   /**

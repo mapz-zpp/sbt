@@ -11,15 +11,15 @@ package sbt.internal.ui
 import java.io.File
 import java.nio.channels.ClosedChannelException
 import java.util.concurrent.atomic.AtomicBoolean
-
-import sbt.BasicCommandStrings.{ Cancel, TerminateAction, Shutdown }
-import sbt.BasicKeys.{ historyPath, colorShellPrompt }
+import sbt.BasicCommandStrings.{ Cancel, Shutdown, TerminateAction }
+import sbt.BasicKeys.{ colorShellPrompt, historyPath }
 import sbt.State
 import sbt.internal.CommandChannel
 import sbt.internal.util.ConsoleAppender.{ ClearPromptLine, ClearScreenAfterCursor, DeleteLine }
 import sbt.internal.util._
-import sbt.internal.util.complete.{ Parser }
+import sbt.internal.util.complete.Parser
 
+//import java.nio.file.{ Files, Paths, StandardOpenOption }
 import scala.annotation.tailrec
 
 private[sbt] trait UITask extends Runnable with AutoCloseable {

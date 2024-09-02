@@ -44,6 +44,7 @@ type ChannelAcceptedEvent implements EventMessage {
 type LogEvent implements EventMessage {
   level: String!
   message: String!
+  originId: String
 }
 
 ## Status event.
@@ -54,6 +55,7 @@ type ExecStatusEvent implements EventMessage {
   commandQueue: [String]
   exitCode: Long @since("1.1.2")
   message: String @since("1.4.0")
+  originId: String
 }
 
 interface SettingQueryResponse implements EventMessage {}

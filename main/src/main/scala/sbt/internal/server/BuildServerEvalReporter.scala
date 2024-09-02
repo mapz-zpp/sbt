@@ -27,8 +27,11 @@ import scala.reflect.internal.util.{ DefinedPosition, Position }
 import scala.tools.nsc.reporters.FilteringReporter
 import sbt.internal.bsp.codec.JsonProtocol._
 
-class BuildServerEvalReporter(buildTarget: BuildTargetIdentifier, delegate: FilteringReporter)
-    extends ForwardingReporter(delegate) {
+class BuildServerEvalReporter(
+    buildTarget: BuildTargetIdentifier,
+    delegate: FilteringReporter,
+    originId: Option[String]
+) extends ForwardingReporter(delegate) {
   private val problemsByFile = mutable.Map[Path, Vector[Diagnostic]]()
 
   override def doReport(pos: Position, msg: String, severity: Severity): Unit = {
@@ -42,7 +45,7 @@ class BuildServerEvalReporter(buildTarget: BuildTargetIdentifier, delegate: Filt
       val params = PublishDiagnosticsParams(
         TextDocumentIdentifier(filePath.toUri),
         buildTarget,
-        originId = None,
+        originId,
         Vector(diagnostic),
         reset = false
       )
@@ -58,7 +61,7 @@ class BuildServerEvalReporter(buildTarget: BuildTargetIdentifier, delegate: Filt
       val params = PublishDiagnosticsParams(
         textDocument = TextDocumentIdentifier(filePath.toUri),
         buildTarget,
-        originId = None,
+        originId,
         diagnostics,
         reset = true
       )

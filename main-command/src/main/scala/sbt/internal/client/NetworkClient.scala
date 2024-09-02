@@ -63,7 +63,7 @@ import NetworkClient.Arguments
 import java.util.concurrent.TimeoutException
 
 trait ConsoleInterface {
-  def appendLog(level: Level.Value, message: => String): Unit
+  def appendLog(level: Level.Value, message: => String, originId: Option[String] = None): Unit
   def success(msg: String): Unit
 }
 
@@ -584,7 +584,7 @@ class NetworkClient(
   }
 
   def onNotification(msg: JsonRpcNotificationMessage): Unit = {
-    def splitToMessage: Vector[(Level.Value, String)] =
+    def splitToMessage: Vector[(Level.Value, String, Option[String])] =
       (msg.method, msg.params) match {
         case ("build/logMessage", Some(json)) =>
           if (!attached.get) {
@@ -629,19 +629,20 @@ class NetworkClient(
           Vector(
             (
               Level.Warn,
-              s"unknown event: ${msg.method} " + Serialization.compactPrintJsonOpt(msg.params)
+              s"unknown event: ${msg.method} " + Serialization.compactPrintJsonOpt(msg.params),
+              None
             )
           )
       }
     splitToMessage foreach {
-      case (level, msg) => console.appendLog(level, msg)
+      case (level, msg, originId) => console.appendLog(level, msg, originId)
     }
   }
 
-  def splitLogMessage(params: LogMessageParams): Vector[(Level.Value, String)] = {
+  def splitLogMessage(params: LogMessageParams): Vector[(Level.Value, String, Option[String])] = {
     val level = messageTypeToLevel(params.`type`)
     if (level == Level.Debug) Vector()
-    else Vector((level, params.message))
+    else Vector((level, params.message, params.originId))
   }
 
   def messageTypeToLevel(severity: Long): Level.Value = {
@@ -1033,15 +1034,23 @@ object NetworkClient {
   private def consoleAppenderInterface(printStream: PrintStream): ConsoleInterface = {
     val appender = ConsoleAppender("thin", ConsoleOut.printStreamOut(printStream))
     new ConsoleInterface {
-      override def appendLog(level: Level.Value, message: => String): Unit =
-        appender.appendLog(level, message)
+      override def appendLog(
+          level: Level.Value,
+          message: => String,
+          originId: Option[String]
+      ): Unit =
+        appender.appendLog(level, message, originId)
       override def success(msg: String): Unit = appender.success(msg)
     }
   }
   private def simpleConsoleInterface(doPrintln: String => Unit): ConsoleInterface =
     new ConsoleInterface {
       import scala.Console.{ GREEN, RED, RESET, YELLOW }
-      override def appendLog(level: Level.Value, message: => String): Unit = synchronized {
+      override def appendLog(
+          level: Level.Value,
+          message: => String,
+          _originId: Option[String]
+      ): Unit = synchronized {
         val prefix = level match {
           case Level.Error => s"[$RED$level$RESET]"
           case Level.Warn  => s"[$YELLOW$level$RESET]"

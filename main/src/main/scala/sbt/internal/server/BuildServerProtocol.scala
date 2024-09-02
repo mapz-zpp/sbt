@@ -34,6 +34,7 @@ import sjsonnew.support.scalajson.unsafe.{ CompactPrinter, Converter, Parser => 
 import xsbti.CompileFailed
 
 import java.io.File
+import java.nio.file.{ Files, Paths }
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
 
@@ -331,12 +332,14 @@ object BuildServerProtocol {
       val logger = streams.value.log
       val meta = isMetaBuild.value
       val spms = sourcePositionMappers.value
+      val st = state.value
       if (bspEnabled.value) {
         new BuildServerReporterImpl(
           targetId,
           bspCompileStateInstance,
           converter,
           Defaults.foldMappers(spms, reportAbsolutePath.value, fileConverter.value),
+          st.originId,
           meta,
           logger,
           underlying
@@ -422,7 +425,8 @@ object BuildServerProtocol {
             val param = Converter.fromJson[CompileParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspBuildTargetCompile.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+            callback.log.debug(s"******** param: $param, command: $command")
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), param.originId)
 
           case r: JsonRpcRequestMessage if r.method == Method.Test =>
             val task = bspBuildTargetTest.key
@@ -443,9 +447,11 @@ object BuildServerProtocol {
             val config = configurationMap(scope.config.toOption.get).id
             val task = bspBuildTargetRun.key
             val paramStr = CompactPrinter(paramJson)
+            Files.writeString(Paths.get("/home/mavia/sbt-log"), s"$paramStr\n")
             val _ = callback.appendExec(
               s"$project / $config / $task $paramStr",
-              Some(r.id)
+              Some(r.id),
+              param.originId
             )
 
           case r if r.method == Method.CleanCache =>
@@ -476,13 +482,14 @@ object BuildServerProtocol {
             val param = Converter.fromJson[ScalaTestClassesParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspScalaTestClasses.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), param.originId)
 
           case r if r.method == Method.ScalaMainClasses =>
             val param = Converter.fromJson[ScalaMainClassesParams](json(r)).get
             val targets = param.targets.map(_.uri).mkString(" ")
             val command = Keys.bspScalaMainClasses.key
-            val _ = callback.appendExec(s"$command $targets", Some(r.id))
+            val _ = callback.appendExec(s"$command $targets", Some(r.id), param.originId)
 
           case r if r.method == Method.Resources =>
             val param = Converter.fromJson[ResourcesParams](json(r)).get
